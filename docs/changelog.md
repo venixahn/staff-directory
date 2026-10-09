@@ -9,3 +9,4 @@
 - Saved profile and report layouts, with field ids checked against the directory.
 - Profile and aggregate PDF downloads rendered from the saved layouts.
 - Directory screen with debounced search, plus the employee form.
+- Field manager and export screen for saved PDF layouts.
