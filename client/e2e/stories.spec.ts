@@ -28,6 +28,7 @@ test("adds, edits, and deletes an employee", async ({ page }) => {
   await page.getByRole("button", { name: "Delete" }).click()
   const confirmDelete = page.getByRole("button", { name: "Delete employee" })
   await expect(confirmDelete).toBeDisabled()
+  await expect(page.getByLabel("Confirmation text")).toBeFocused()
   await page.getByLabel("Confirmation text").fill("Test Person")
   await confirmDelete.click()
   await expect(page.getByRole("heading", { name: "Directory" })).toBeVisible()

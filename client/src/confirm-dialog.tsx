@@ -25,7 +25,7 @@ export function ConfirmDialog(props: {
           <input
             class="input input-bordered"
             aria-label="Confirmation text"
-            autofocus
+            ref={(input) => queueMicrotask(() => input.focus())}
             value={typed()}
             onInput={(event) => setTyped(event.currentTarget.value)}
           />
