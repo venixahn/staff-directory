@@ -6,9 +6,19 @@ Write a failing test locally, make it pass, then commit the test, the code, and 
 
 - **Unit** (`npm run test:unit`) — Vitest. Shared Zod and helpers, server Effect and PDF planning, client RxJS-to-signal bridge.
 - **API** (`npm run test:api`) — Vitest and Supertest against a temporary `db.json`.
-- **End-to-end** (`npm run test:e2e`) — Playwright, one scenario per user story, plus the shell smoke test. The suite starts the API against `server/data/e2e.json`, which is deleted before the run so the seed data is fresh.
+- **End-to-end** (`npm run test:e2e`) — Playwright, one scenario per user story, plus the shell smoke test. The suite starts its own API on port 3010 against `server/data/e2e.json` (deleted before the run) and its own UI on port 5174. `npm run dev` keeps port 3000 and port 5173.
 
 `npm test` runs all three. Before merging a feature branch into `develop`, run `npm test`.
+
+## Coverage
+
+Istanbul reports are separate from `npm test`, so the commit hook stays on the uninstrumented suites.
+
+- **Unit** (`npm run test:coverage:unit`) — Istanbul via Vitest for `@staff/shared`, `@staff/server`, and `@staff/client`. HTML and lcov land in each package's `coverage/unit`.
+- **Integration** (`npm run test:coverage:integration`) — the same Supertest API suite, reported to `server/coverage/integration`.
+- **End-to-end** (`npm run test:coverage:e2e`) — Playwright with the client instrumented (`VITE_COVERAGE=true`) and the API wrapped in c8. Browser coverage is collected from `window.__coverage__` and reported with nyc to `client/coverage/e2e`. Server coverage is reported to `server/coverage/e2e`.
+
+`npm run test:coverage` runs all three.
 
 ## Hooks
 

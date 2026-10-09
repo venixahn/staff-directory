@@ -7,7 +7,9 @@
     "dev": "tsx watch src/main.ts",
     "start": "tsx src/main.ts",
     "test:unit": "vitest run --config vitest.unit.config.ts",
-    "test:api": "vitest run --config vitest.api.config.ts"
+    "test:api": "vitest run --config vitest.api.config.ts",
+    "test:coverage:unit": "vitest run --config vitest.unit.config.ts --coverage",
+    "test:coverage:integration": "vitest run --config vitest.api.config.ts --coverage"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.6",
@@ -25,6 +27,8 @@
     "@types/node": "^24.7.0",
     "@types/pdfmake": "^0.2.11",
     "@types/supertest": "^6.0.3",
+    "@vitest/coverage-istanbul": "^3.2.7",
+    "c8": "^12.0.0",
     "supertest": "^7.1.4",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",

@@ -28,6 +28,14 @@ pdfmake turns a declarative document definition into PDF bytes. The planner is a
 
 ESLint's built-in `complexity` rule fails above 8. That is cyclomatic complexity. Functions stay small instead of disabling the rule.
 
+## Dev server
+
+`npm run dev` keeps Nest on port 3000 and Vite on port 5173. Playwright uses 3010 and 5174, so the suite can run while the app stays open.
+
+## Istanbul coverage
+
+Unit, integration, and end-to-end coverage stay in three reports. One blended number would hide which suite exercised the code. Coverage is a separate script, so pre-commit still runs the plain unit tests.
+
 ## Git flow and green commits
 
 `main` is the finished line. `develop` integrates feature branches. Each commit is one behavior and includes its docs update. The pre-commit hook runs unit tests, so the committed tree is green.
