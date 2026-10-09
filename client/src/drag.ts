@@ -1,3 +1,5 @@
+const highlight = ["ring-2", "ring-primary"]
+
 export function dragItem(id: string, onDropId: (sourceId: string, targetId: string) => void) {
   return {
     draggable: true as const,
@@ -5,11 +7,16 @@ export function dragItem(id: string, onDropId: (sourceId: string, targetId: stri
       event.dataTransfer?.setData("text/plain", id)
       if (event.dataTransfer) event.dataTransfer.effectAllowed = "move"
     },
-    onDragOver(event: DragEvent) {
+    onDragOver(event: DragEvent & { currentTarget: HTMLElement }) {
       event.preventDefault()
+      event.currentTarget.classList.add(...highlight)
     },
-    onDrop(event: DragEvent) {
+    onDragLeave(event: DragEvent & { currentTarget: HTMLElement }) {
+      event.currentTarget.classList.remove(...highlight)
+    },
+    onDrop(event: DragEvent & { currentTarget: HTMLElement }) {
       event.preventDefault()
+      event.currentTarget.classList.remove(...highlight)
       const sourceId = event.dataTransfer?.getData("text/plain") ?? ""
       if (sourceId) onDropId(sourceId, id)
     },
