@@ -1,16 +1,22 @@
 import { Inject, Injectable, type OnModuleInit } from "@nestjs/common"
 import { createSeedDatabase, databaseSchema, type StaffDatabase } from "@staff/shared"
-import { Effect, type Semaphore } from "effect"
-import { JSONFilePreset, type Low } from "lowdb/node"
+import { Effect } from "effect"
+import type { Low } from "lowdb"
+import { JSONFilePreset } from "lowdb/node"
 import { mkdir } from "node:fs/promises"
 import path from "node:path"
 import { DatabaseFailure, type InvalidField, invalidField } from "../errors"
 import { DB_PATH } from "./db-path"
 
+export interface Change<A> {
+  data: StaffDatabase
+  value: A
+}
+
 @Injectable()
 export class DatabaseService implements OnModuleInit {
   private low: Low<StaffDatabase> | null = null
-  private gate: Semaphore | null = null
+  private gate: Effect.Semaphore | null = null
 
   constructor(@Inject(DB_PATH) private readonly dbPath: string) {}
 
@@ -30,7 +36,7 @@ export class DatabaseService implements OnModuleInit {
   }
 
   transaction<A, E>(
-    body: (data: StaffDatabase) => Effect.Effect<{ data: StaffDatabase; value: A }, E>,
+    body: (data: StaffDatabase) => Effect.Effect<Change<A>, E>,
   ): Effect.Effect<A, E | DatabaseFailure | InvalidField> {
     const low = this.low
     return this.locked(writeNext(low, body))
@@ -50,7 +56,7 @@ function cloneData(low: Low<StaffDatabase> | null): StaffDatabase {
 
 function writeNext<A, E>(
   low: Low<StaffDatabase> | null,
-  body: (data: StaffDatabase) => Effect.Effect<{ data: StaffDatabase; value: A }, E>,
+  body: (data: StaffDatabase) => Effect.Effect<Change<A>, E>,
 ): Effect.Effect<A, E | DatabaseFailure | InvalidField> {
   if (!low) return Effect.fail(new DatabaseFailure({ message: "Database is closed" }))
   return Effect.gen(function* () {

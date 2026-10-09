@@ -1,8 +1,8 @@
 import type { INestApplication } from "@nestjs/common"
 import { mkdtemp, rm } from "node:fs/promises"
-import type { IncomingMessage } from "node:http"
 import { tmpdir } from "node:os"
 import path from "node:path"
+import type { Response } from "superagent"
 import request from "supertest"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 import { createApp } from "../../src/create-app"
@@ -54,7 +54,7 @@ describe("pdf API", () => {
   }
 })
 
-function binaryParser(res: IncomingMessage, callback: (error: Error | null, body: Buffer) => void) {
+function binaryParser(res: Response, callback: (error: Error | null, body: Buffer) => void) {
   const chunks: Buffer[] = []
   res.on("data", (chunk: Buffer) => chunks.push(Buffer.from(chunk)))
   res.on("end", () => callback(null, Buffer.concat(chunks)))

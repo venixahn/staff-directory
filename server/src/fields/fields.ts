@@ -6,8 +6,15 @@ import {
   type StaffDatabase,
 } from "@staff/shared"
 import { Effect } from "effect"
-import type { DatabaseService } from "../database/database.service"
-import { builtinFieldProtected, fieldNotFound, invalidField } from "../errors"
+import type { Change, DatabaseService } from "../database/database.service"
+import {
+  builtinFieldProtected,
+  fieldNotFound,
+  invalidField,
+  type BuiltinFieldProtected,
+  type FieldNotFound,
+  type InvalidField,
+} from "../errors"
 
 export function listFields(database: DatabaseService) {
   return database.read().pipe(Effect.map((data) => data.fields))
@@ -47,7 +54,11 @@ function appendField(data: StaffDatabase, draft: FieldDraft) {
   }
 }
 
-function changeField(data: StaffDatabase, id: string, draft: FieldDraft) {
+function changeField(
+  data: StaffDatabase,
+  id: string,
+  draft: FieldDraft,
+): Effect.Effect<Change<Field>, FieldNotFound | InvalidField> {
   const current = data.fields.find((field) => field.id === id)
   if (!current) return Effect.fail(fieldNotFound(id))
   const merged = mergeField(current, draft)
@@ -58,14 +69,14 @@ function changeField(data: StaffDatabase, id: string, draft: FieldDraft) {
   })
 }
 
-function dropField(data: StaffDatabase, id: string) {
+function dropField(data: StaffDatabase, id: string): Effect.Effect<Change<undefined>, FieldNotFound | BuiltinFieldProtected> {
   const current = data.fields.find((field) => field.id === id)
   if (!current) return Effect.fail(fieldNotFound(id))
   if (current.builtin) return Effect.fail(builtinFieldProtected(id))
   return Effect.succeed({ data: withoutField(data, id), value: undefined })
 }
 
-function orderFields(data: StaffDatabase, ids: string[]) {
+function orderFields(data: StaffDatabase, ids: string[]): Effect.Effect<Change<Field[]>, InvalidField> {
   if (!sameMembers(data.fields.map((field) => field.id), ids)) {
     return Effect.fail(invalidField("Field order must list each field once"))
   }
