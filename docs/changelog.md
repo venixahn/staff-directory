@@ -7,3 +7,4 @@
 - Employee API: list, search, read, create, update, and delete against the JSON file.
 - Custom fields: create, update, reorder, and delete, including stripping stored values.
 - Saved profile and report layouts, with field ids checked against the directory.
+- Profile and aggregate PDF downloads rendered from the saved layouts.
