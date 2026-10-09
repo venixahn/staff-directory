@@ -1,3 +1,14 @@
+export function relocateId(ids: string[], sourceId: string, targetId: string): string[] {
+  const from = ids.indexOf(sourceId)
+  const to = ids.indexOf(targetId)
+  if (from < 0 || to < 0 || from === to) return ids
+  const copy = [...ids]
+  const [item] = copy.splice(from, 1)
+  if (!item) return ids
+  copy.splice(to, 0, item)
+  return copy
+}
+
 export function moveId(ids: string[], id: string, direction: -1 | 1): string[] {
   const index = ids.indexOf(id)
   const target = index + direction
