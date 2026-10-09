@@ -1,0 +1,218 @@
+{
+  "fields": [
+    {
+      "id": "firstName",
+      "label": "First name",
+      "type": "text",
+      "required": true,
+      "builtin": true
+    },
+    {
+      "id": "lastName",
+      "label": "Last name",
+      "type": "text",
+      "required": true,
+      "builtin": true
+    },
+    {
+      "id": "email",
+      "label": "Email",
+      "type": "email",
+      "required": true,
+      "builtin": true
+    },
+    {
+      "id": "phone",
+      "label": "Phone",
+      "type": "phone",
+      "required": false,
+      "builtin": false
+    },
+    {
+      "id": "department",
+      "label": "Department",
+      "type": "text",
+      "required": false,
+      "builtin": false
+    },
+    {
+      "id": "jobTitle",
+      "label": "Job title",
+      "type": "text",
+      "required": false,
+      "builtin": false
+    },
+    {
+      "id": "hireDate",
+      "label": "Hire date",
+      "type": "date",
+      "required": false,
+      "builtin": false
+    },
+    {
+      "id": "status",
+      "label": "Status",
+      "type": "select",
+      "required": true,
+      "options": [
+        "Active",
+        "Inactive"
+      ],
+      "builtin": false
+    },
+    {
+      "id": "office",
+      "label": "Office",
+      "type": "text",
+      "required": false,
+      "builtin": false
+    }
+  ],
+  "employees": [
+    {
+      "id": "emp-ada",
+      "values": {
+        "firstName": "Ada",
+        "lastName": "Lovelace",
+        "email": "ada@example.com",
+        "phone": "",
+        "department": "Engineering",
+        "jobTitle": "Engineer",
+        "hireDate": "2020-01-15",
+        "status": "Active",
+        "office": "London"
+      }
+    },
+    {
+      "id": "emp-grace",
+      "values": {
+        "firstName": "Grace",
+        "lastName": "Hopper",
+        "email": "grace@example.com",
+        "phone": "",
+        "department": "Engineering",
+        "jobTitle": "Admiral",
+        "hireDate": "2020-01-15",
+        "status": "Active",
+        "office": "New York"
+      }
+    },
+    {
+      "id": "emp-alan",
+      "values": {
+        "firstName": "Alan",
+        "lastName": "Turing",
+        "email": "alan@example.com",
+        "phone": "",
+        "department": "Research",
+        "jobTitle": "Scientist",
+        "hireDate": "2020-01-15",
+        "status": "Active",
+        "office": "Manchester"
+      }
+    },
+    {
+      "id": "emp-katherine",
+      "values": {
+        "firstName": "Katherine",
+        "lastName": "Johnson",
+        "email": "katherine@example.com",
+        "phone": "",
+        "department": "Research",
+        "jobTitle": "Mathematician",
+        "hireDate": "2020-01-15",
+        "status": "Active",
+        "office": "Hampton"
+      }
+    },
+    {
+      "id": "emp-margaret",
+      "values": {
+        "firstName": "Margaret",
+        "lastName": "Hamilton",
+        "email": "margaret@example.com",
+        "phone": "",
+        "department": "Engineering",
+        "jobTitle": "Director",
+        "hireDate": "2020-01-15",
+        "status": "Active",
+        "office": "Cambridge"
+      }
+    },
+    {
+      "id": "emp-tim",
+      "values": {
+        "firstName": "Tim",
+        "lastName": "Berners-Lee",
+        "email": "tim@example.com",
+        "phone": "",
+        "department": "Product",
+        "jobTitle": "Inventor",
+        "hireDate": "2020-01-15",
+        "status": "Active",
+        "office": "London"
+      }
+    },
+    {
+      "id": "emp-barbara",
+      "values": {
+        "firstName": "Barbara",
+        "lastName": "Liskov",
+        "email": "barbara@example.com",
+        "phone": "",
+        "department": "Research",
+        "jobTitle": "Professor",
+        "hireDate": "2020-01-15",
+        "status": "Inactive",
+        "office": "Boston"
+      }
+    },
+    {
+      "id": "emp-donald",
+      "values": {
+        "firstName": "Donald",
+        "lastName": "Knuth",
+        "email": "donald@example.com",
+        "phone": "",
+        "department": "Research",
+        "jobTitle": "Professor",
+        "hireDate": "2020-01-15",
+        "status": "Active",
+        "office": "Stanford"
+      }
+    }
+  ],
+  "layouts": {
+    "profile": {
+      "title": "Employee Profile",
+      "fieldIds": [
+        "firstName",
+        "lastName",
+        "email",
+        "phone",
+        "department",
+        "jobTitle",
+        "hireDate",
+        "status",
+        "office"
+      ],
+      "showEmptyFields": false,
+      "orientation": "portrait"
+    },
+    "report": {
+      "title": "Employee Directory",
+      "columnIds": [
+        "firstName",
+        "lastName",
+        "email",
+        "department",
+        "jobTitle",
+        "status"
+      ],
+      "orientation": "landscape",
+      "sortFieldId": "lastName",
+      "sortDirection": "asc",
+      "groupByFieldId": "department"
+    }
+  }
+}

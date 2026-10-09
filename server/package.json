@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "start": "tsx src/main.ts",
-    "test:unit": "vitest run --passWithNoTests --config vitest.unit.config.ts",
-    "test:api": "vitest run --passWithNoTests --config vitest.api.config.ts"
+    "test:unit": "vitest run --config vitest.unit.config.ts",
+    "test:api": "vitest run --config vitest.api.config.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.6",
