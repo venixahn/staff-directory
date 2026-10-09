@@ -1,0 +1,26 @@
+{
+  "name": "staff-directory",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,green \"npm run dev -w server\" \"npm run dev -w client\"",
+    "lint": "eslint .",
+    "test:unit": "npm run test:unit --workspaces --if-present",
+    "test:api": "npm run test:api --workspace=server --if-present",
+    "test:e2e": "npm run test:e2e --workspace=client --if-present",
+    "test": "npm run test:unit && npm run test:api && npm run test:e2e",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "eslint": "^9.37.0",
+    "husky": "^9.1.7",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.0"
+  }
+}
