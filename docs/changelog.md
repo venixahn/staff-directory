@@ -11,3 +11,4 @@
 - Directory screen with debounced search, plus the employee form.
 - Field manager and export screen for saved PDF layouts.
 - Directory list reloads after an employee is deleted.
+- Playwright coverage for the user stories, using a fresh end-to-end database file.
