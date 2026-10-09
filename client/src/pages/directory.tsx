@@ -32,7 +32,7 @@ export function DirectoryPage() {
     if (!confirm(`Delete ${displayName(employee)}?`)) return
     try {
       await removeEmployee(employee.id)
-      query$.next(directoryQuery())
+      setRows(await listEmployees(directoryQuery()))
     } catch (cause) {
       setError(messageOf(cause))
     }

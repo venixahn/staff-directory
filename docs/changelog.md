@@ -10,3 +10,4 @@
 - Profile and aggregate PDF downloads rendered from the saved layouts.
 - Directory screen with debounced search, plus the employee form.
 - Field manager and export screen for saved PDF layouts.
+- Directory list reloads after an employee is deleted.
