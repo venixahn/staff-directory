@@ -1,6 +1,7 @@
 import type { Field, FieldDraft, FieldType } from "@staff/shared"
 import { createSignal, For, onMount, Show } from "solid-js"
 import { createField, listFields, removeField, reorderFields, updateField } from "../api"
+import { ColumnsEditor } from "../columns-editor"
 import { ConfirmDialog } from "../confirm-dialog"
 import { dragItem } from "../drag"
 import { relocateId } from "../order"
@@ -14,6 +15,7 @@ export function FieldsPage() {
   const [editingId, setEditingId] = createSignal<string | null>(null)
   const [error, setError] = createSignal("")
   const [pendingDelete, setPendingDelete] = createSignal<Field | null>(null)
+  let labelInput: HTMLInputElement | undefined
 
   onMount(() => {
     void refresh()
@@ -25,8 +27,10 @@ export function FieldsPage() {
 
   function beginEdit(field: Field) {
     setEditingId(field.id)
-    setDraft({ label: field.label, type: field.type, required: field.required, options: field.options })
+    setDraft({ label: field.label, type: field.type, required: field.required, options: field.options, columns: field.columns })
     setOptionsText(field.options?.join(", ") ?? "")
+    labelInput?.scrollIntoView({ block: "center" })
+    labelInput?.focus({ preventScroll: true })
   }
 
   function resetForm() {
@@ -77,6 +81,7 @@ export function FieldsPage() {
         <div class="card-body grid gap-3 md:grid-cols-2">
           <h2 class="md:col-span-2 text-lg font-medium">{editingId() ? "Edit field" : "Add field"}</h2>
           <input
+            ref={labelInput}
             class="input input-bordered"
             aria-label="Field label"
             placeholder="Label"
@@ -87,10 +92,13 @@ export function FieldsPage() {
             class="select select-bordered"
             aria-label="Field type"
             value={draft().type}
-            onChange={(event) => setDraft({ ...draft(), type: event.currentTarget.value as FieldType })}
+            onChange={(event) => setDraft(withType(draft(), event.currentTarget.value as FieldType))}
           >
-            <For each={fieldTypes}>{(type) => <option value={type}>{type}</option>}</For>
+            <For each={fieldTypes}>{(type) => <option value={type}>{typeLabel(type)}</option>}</For>
           </select>
+          <Show when={draft().type === "records"}>
+            <ColumnsEditor columns={draft().columns ?? []} onChange={(columns) => setDraft({ ...draft(), columns })} />
+          </Show>
           <Show when={draft().type === "select"}>
             <input
               class="input input-bordered md:col-span-2"
@@ -165,7 +173,7 @@ function FieldRow(props: {
         ⠿
       </span>
       <span class="flex-1">
-        {props.field.label} <span class="opacity-60">({props.field.type})</span>
+        {props.field.label} <span class="opacity-60">({fieldSummary(props.field)})</span>
       </span>
       <button class="btn btn-sm" type="button" onClick={props.onEdit}>
         Edit
@@ -177,7 +185,21 @@ function FieldRow(props: {
   )
 }
 
-const fieldTypes: FieldType[] = ["text", "textarea", "email", "phone", "date", "select"]
+const fieldTypes: FieldType[] = ["text", "textarea", "email", "phone", "date", "select", "records"]
+
+function typeLabel(type: FieldType) {
+  return type === "records" ? "records (list of entries)" : type
+}
+
+function fieldSummary(field: Field) {
+  if (field.type !== "records") return field.type
+  return `records: ${(field.columns ?? []).map((column) => column.label).join(", ")}`
+}
+
+function withType(draft: FieldDraft, type: FieldType): FieldDraft {
+  const needsColumn = type === "records" && !draft.columns?.length
+  return { ...draft, type, columns: needsColumn ? [{ label: "", type: "text" }] : draft.columns }
+}
 
 async function saveDraft(id: string | null, draft: FieldDraft) {
   if (id) await updateField(id, draft)
@@ -185,8 +207,10 @@ async function saveDraft(id: string | null, draft: FieldDraft) {
 }
 
 function draftFrom(draft: FieldDraft, optionsText: string): FieldDraft {
-  if (draft.type !== "select") return { label: draft.label, type: draft.type, required: draft.required }
-  return { ...draft, options: splitOptions(optionsText) }
+  const base = { label: draft.label, type: draft.type, required: draft.required }
+  if (draft.type === "select") return { ...base, options: splitOptions(optionsText) }
+  if (draft.type === "records") return { ...base, columns: (draft.columns ?? []).filter((column) => column.label.trim()) }
+  return base
 }
 
 function splitOptions(text: string) {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import type { EmployeeValues } from "../src/schemas"
 import { createSeedDatabase } from "../src/seed"
 import { employeeValueMessage } from "../src/values"
 
@@ -23,9 +24,23 @@ describe("employee values", () => {
     expect(employeeValueMessage(fields, full({ nickname: "A" }))).toBe("Unknown field nickname")
     expect(employeeValueMessage(fields, full({ status: "Away" }))).toBe("Status must be one of the options")
   })
+
+  it("accepts list entries for records fields and checks their shape and columns", () => {
+    const education = [{ school: "Vassar College", from: "1924-09-01" }]
+    expect(employeeValueMessage(fields, full({ education }))).toBeNull()
+    expect(employeeValueMessage(fields, full({ education: "Vassar" }))).toBe("Education must be a list of entries")
+    expect(employeeValueMessage(fields, full({ office: [] }))).toBe("Office must be text")
+    expect(employeeValueMessage(fields, full({ education: [{ grade: "A" }] }))).toBe("Education has no column grade")
+  })
+
+  it("treats a required records field with only blank entries as missing", () => {
+    const required = fields.map((field) => (field.id === "family" ? { ...field, required: true } : field))
+    expect(employeeValueMessage(required, full({ family: [{ name: " " }] }))).toBe("Family members is required")
+    expect(employeeValueMessage(required, full({ family: [{ name: "Byron King" }] }))).toBeNull()
+  })
 })
 
-function full(extra: Record<string, string>): Record<string, string> {
+function full(extra: EmployeeValues): EmployeeValues {
   return {
     firstName: "Ada",
     lastName: "Lovelace",

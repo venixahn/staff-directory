@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { pageDimensions, planProfile, planReport, type PlannedTable } from "../src/pdf-plan"
+import { pageDimensions, planProfile, planReport, type PlannedSection, type PlannedTable } from "../src/pdf-plan"
 import { createSeedDatabase } from "../src/seed"
 
 describe("PDF plans", () => {
@@ -18,11 +18,32 @@ describe("PDF plans", () => {
 
   it("splits profile fields into two columns and keeps their order", () => {
     const plan = planProfile(ada, database.fields, { ...profile, columns: 2, labelStyle: "stacked" })
-    expect(plan.blocks).toHaveLength(1)
+    expect(plan.blocks.map((block) => block.kind)).toEqual(["columns", "section", "section", "section"])
     const block = plan.blocks[0]
     if (block?.kind !== "columns") throw new Error("expected columns")
     expect(block.columns[0]?.[0]).toMatchObject({ fieldId: "firstName", labelStyle: "stacked" })
     expect(block.columns.flat().map((field) => field.fieldId)).toEqual(labels(planProfile(ada, database.fields, profile).blocks, "id"))
+  })
+
+  it("plans records fields as full-width sections between runs of fields", () => {
+    const fieldIds = ["firstName", "education", "lastName", "email", "family"]
+    const plan = planProfile(ada, database.fields, { ...profile, fieldIds, columns: 2 })
+    expect(plan.blocks.map((block) => block.kind)).toEqual(["columns", "section", "columns", "section"])
+    const education = plan.blocks[1] as PlannedSection
+    expect(education.columns.map((column) => column.label)).toEqual(["School", "Degree", "Location", "From", "To"])
+    expect(education.rows).toEqual([["Home tutoring", "Mathematics", "London", "1830-01-01", "1835-12-31"]])
+  })
+
+  it("drops empty sections unless the layout shows empty fields", () => {
+    const alan = database.employees.find((employee) => employee.id === "emp-alan")!
+    expect(planProfile(alan, database.fields, profile).blocks.some((block) => block.kind === "section")).toBe(false)
+    const shown = planProfile(alan, database.fields, { ...profile, showEmptyFields: true })
+    expect(shown.blocks.filter((block) => block.kind === "section")).toHaveLength(3)
+  })
+
+  it("never puts a records field in a report column", () => {
+    const plan = planReport(database.employees, database.fields, { ...report, columnIds: ["lastName", "education"] })
+    expect((plan.blocks[0] as PlannedTable).columns.map((column) => column.fieldId)).toEqual(["lastName"])
   })
 
   it("carries paper, margin, and type sizes into the plan", () => {

@@ -1,4 +1,4 @@
-import { employeeValueMessage, filterEmployees, type Employee, type StaffDatabase } from "@staff/shared"
+import { employeeValueMessage, filterEmployees, type Employee, type EmployeeValues, type StaffDatabase } from "@staff/shared"
 import { Effect } from "effect"
 import { employeeNotFound, invalidField, type EmployeeNotFound, type InvalidField } from "../errors"
 import type { Change, DatabaseService } from "../database/database.service"
@@ -11,11 +11,11 @@ export function getEmployee(database: DatabaseService, id: string) {
   return database.read().pipe(Effect.flatMap((data) => findEmployee(data, id)))
 }
 
-export function createEmployee(database: DatabaseService, values: Record<string, string>) {
+export function createEmployee(database: DatabaseService, values: EmployeeValues) {
   return database.transaction((data) => insertEmployee(data, values))
 }
 
-export function updateEmployee(database: DatabaseService, id: string, values: Record<string, string>) {
+export function updateEmployee(database: DatabaseService, id: string, values: EmployeeValues) {
   return database.transaction((data) => replaceEmployee(data, id, values))
 }
 
@@ -29,7 +29,7 @@ function findEmployee(data: StaffDatabase, id: string): Effect.Effect<Employee, 
   return Effect.succeed(employee)
 }
 
-function insertEmployee(data: StaffDatabase, values: Record<string, string>): Effect.Effect<Change<Employee>, InvalidField> {
+function insertEmployee(data: StaffDatabase, values: EmployeeValues): Effect.Effect<Change<Employee>, InvalidField> {
   const message = employeeValueMessage(data.fields, values)
   if (message) return Effect.fail(invalidField(message))
   const employee: Employee = { id: crypto.randomUUID(), values }
@@ -42,7 +42,7 @@ function insertEmployee(data: StaffDatabase, values: Record<string, string>): Ef
 function replaceEmployee(
   data: StaffDatabase,
   id: string,
-  patch: Record<string, string>,
+  patch: EmployeeValues,
 ): Effect.Effect<Change<Employee>, EmployeeNotFound | InvalidField> {
   const current = data.employees.find((item) => item.id === id)
   if (!current) return Effect.fail(employeeNotFound(id))

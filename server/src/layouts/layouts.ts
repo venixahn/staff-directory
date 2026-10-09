@@ -1,4 +1,4 @@
-import type { Field, ProfileLayout, ReportLayout, StaffDatabase } from "@staff/shared"
+import { isRecords, type Field, type ProfileLayout, type ReportLayout, type StaffDatabase } from "@staff/shared"
 import { Effect } from "effect"
 import type { DatabaseService } from "../database/database.service"
 import { invalidField } from "../errors"
@@ -46,8 +46,14 @@ export function reportMessage(fields: Field[], layout: ReportLayout): string | n
     idListMessage(fields, layout.columnIds),
     unknownId(fields, [layout.sortFieldId]),
     groupMessage(fields, layout.groupByFieldId),
+    recordsMessage(fields, [...layout.columnIds, layout.sortFieldId, layout.groupByFieldId ?? ""]),
   ]
   return messages.find((message) => message !== null) ?? null
+}
+
+function recordsMessage(fields: Field[], ids: string[]): string | null {
+  const records = fields.find((field) => isRecords(field) && ids.includes(field.id))
+  return records ? `${records.label} is a list and cannot be a report column, sort, or group` : null
 }
 
 function idListMessage(fields: Field[], ids: string[]): string | null {

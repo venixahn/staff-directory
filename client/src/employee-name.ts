@@ -1,7 +1,7 @@
-import type { Employee } from "@staff/shared"
+import { textValue, type Employee } from "@staff/shared"
 
 export function displayName(employee: Employee) {
-  return `${employee.values.firstName ?? ""} ${employee.values.lastName ?? ""}`.trim()
+  return `${textValue(employee.values, "firstName")} ${textValue(employee.values, "lastName")}`.trim()
 }
 
 export function messageOf(cause: unknown) {

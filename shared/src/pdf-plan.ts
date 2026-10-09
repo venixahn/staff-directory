@@ -1,3 +1,4 @@
+import { filledEntries, isRecords, recordEntries, textValue } from "./field-values"
 import type { Density, Employee, Field, LabelStyle, Margin, PageSize, ProfileLayout, ReportLayout } from "./schemas"
 
 export interface PlannedField {
@@ -22,7 +23,15 @@ export interface PlannedTable {
 
 export type PlannedRow = { kind: "group"; label: string } | { kind: "cells"; cells: string[] }
 
-export type PlannedBlock = PlannedField | PlannedColumns | PlannedTable
+export interface PlannedSection {
+  kind: "section"
+  fieldId: string
+  label: string
+  columns: Array<{ id: string; label: string }>
+  rows: string[][]
+}
+
+export type PlannedBlock = PlannedField | PlannedColumns | PlannedTable | PlannedSection
 
 export interface PdfPlan {
   pageSize: PageSize
@@ -42,6 +51,9 @@ export const pdfSpacing = {
   inlineFieldGap: 2,
   stackedFieldGap: 4,
   cellPaddingX: 4,
+  sectionGap: 10,
+  sectionLabelGap: 4,
+  sectionCellPadding: 3,
 } as const
 
 const pagePoints: Record<PageSize, [number, number]> = {
@@ -61,15 +73,14 @@ export function marginPoints(margin: Margin): number {
 }
 
 export function planProfile(employee: Employee, fields: Field[], layout: ProfileLayout): PdfPlan {
-  const lines = profileLines(employee, fields, layout)
   return {
     ...pageBox(layout),
-    blocks: layout.columns === 2 ? [splitColumns(lines)] : lines,
+    blocks: profileBlocks(employee, fields, layout),
   }
 }
 
 export function planReport(employees: Employee[], fields: Field[], layout: ReportLayout): PdfPlan {
-  const columns = columnsFor(fields, layout.columnIds)
+  const columns = columnsFor(fields, layout.columnIds).filter((field) => !isRecords(field))
   const sorted = sortEmployees(employees, layout)
   return {
     ...pageBox(layout),
@@ -100,19 +111,42 @@ function splitColumns(lines: PlannedField[]): PlannedColumns {
   return { kind: "columns", columns: [lines.slice(0, half), lines.slice(half)] }
 }
 
-function profileLines(employee: Employee, fields: Field[], layout: ProfileLayout): PlannedField[] {
-  return layout.fieldIds.flatMap((id) => {
-    const line = profileLine(employee, fields, layout, id)
-    return line ? [line] : []
-  })
+function profileBlocks(employee: Employee, fields: Field[], layout: ProfileLayout): PlannedBlock[] {
+  const blocks: PlannedBlock[] = []
+  let run: PlannedField[] = []
+  const flush = () => {
+    blocks.push(...arrangeRun(run, layout))
+    run = []
+  }
+  for (const field of columnsFor(fields, layout.fieldIds)) {
+    if (isRecords(field)) {
+      flush()
+      blocks.push(...profileSection(employee, field, layout))
+    } else {
+      run.push(...profileLine(employee, field, layout))
+    }
+  }
+  flush()
+  return blocks
 }
 
-function profileLine(employee: Employee, fields: Field[], layout: ProfileLayout, id: string): PlannedField | null {
-  const field = fields.find((item) => item.id === id)
-  if (!field) return null
-  const value = employee.values[id] ?? ""
-  if (!layout.showEmptyFields && value.trim() === "") return null
-  return { kind: "field", fieldId: id, label: field.label, value: shown(value), labelStyle: layout.labelStyle }
+function arrangeRun(run: PlannedField[], layout: ProfileLayout): PlannedBlock[] {
+  if (run.length === 0) return []
+  return layout.columns === 2 ? [splitColumns(run)] : run
+}
+
+function profileLine(employee: Employee, field: Field, layout: ProfileLayout): PlannedField[] {
+  const value = textValue(employee.values, field.id)
+  if (!layout.showEmptyFields && value.trim() === "") return []
+  return [{ kind: "field", fieldId: field.id, label: field.label, value: shown(value), labelStyle: layout.labelStyle }]
+}
+
+function profileSection(employee: Employee, field: Field, layout: ProfileLayout): PlannedSection[] {
+  const entries = filledEntries(recordEntries(employee.values, field.id))
+  if (!layout.showEmptyFields && entries.length === 0) return []
+  const columns = (field.columns ?? []).map((column) => ({ id: column.id, label: column.label }))
+  const rows = entries.map((entry) => columns.map((column) => entry[column.id] ?? ""))
+  return [{ kind: "section", fieldId: field.id, label: field.label, columns, rows }]
 }
 
 function shown(value: string) {
@@ -143,17 +177,17 @@ function compareEmployees(left: Employee, right: Employee, layout: ReportLayout)
 
 function compareText(left: Employee, right: Employee, fieldId: string | null): number {
   if (!fieldId) return 0
-  return (left.values[fieldId] ?? "").localeCompare(right.values[fieldId] ?? "")
+  return textValue(left.values, fieldId).localeCompare(textValue(right.values, fieldId))
 }
 
 function bodyRows(employees: Employee[], columns: Field[], groupBy: string | null): PlannedRow[] {
   const rows: PlannedRow[] = []
   let previous: string | null = null
   for (const employee of employees) {
-    const label = groupBy ? employee.values[groupBy] ?? "" : null
+    const label = groupBy ? textValue(employee.values, groupBy) : null
     if (label !== null && label !== previous) rows.push({ kind: "group", label: label || "—" })
     previous = label
-    rows.push({ kind: "cells", cells: columns.map((field) => employee.values[field.id] ?? "") })
+    rows.push({ kind: "cells", cells: columns.map((field) => textValue(employee.values, field.id)) })
   }
   return rows
 }

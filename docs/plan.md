@@ -42,8 +42,8 @@ Branches:
 ## Screens
 
 - Directory — search and add; clicking a row opens the profile
-- Profile — every field for one employee, with Edit, Download PDF, and Delete (typed-name confirmation)
+- Profile — every field for one employee, with a table for each records field, and Edit, Download PDF, and Delete (typed-name confirmation)
 - Profile PDF — WYSIWYG designer for one employee's PDF; download the draft or save it as the default layout
-- Employee form — generated from field definitions
-- Fields — add, edit, drag to reorder, and delete custom fields (typed-label confirmation)
+- Employee form — generated from field definitions; records fields add and remove entries
+- Fields — add, edit, drag to reorder, and delete custom fields (typed-label confirmation); records fields define their columns
 - Report PDF — WYSIWYG designer for the aggregate PDF of a search; download the draft or save it as the default layout

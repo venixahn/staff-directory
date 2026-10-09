@@ -19,4 +19,9 @@ describe("search", () => {
     ])
     expect(filterEmployees(database.employees, database.fields, "2020-01-15")).toHaveLength(0)
   })
+
+  it("matches text inside records entries", () => {
+    const found = filterEmployees(database.employees, database.fields, "yale")
+    expect(found.map((employee) => employee.id)).toEqual(["emp-grace"])
+  })
 })

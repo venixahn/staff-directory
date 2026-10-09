@@ -18,6 +18,12 @@ describe("schemas", () => {
     expect(result.success).toBe(false)
   })
 
+  it("requires at least one column on a records field", () => {
+    const draft = { label: "Certificates", type: "records", required: false }
+    expect(fieldDraftSchema.safeParse(draft).success).toBe(false)
+    expect(fieldDraftSchema.safeParse({ ...draft, columns: [{ label: "Name", type: "text" }] }).success).toBe(true)
+  })
+
   it("rejects an empty field draft label", () => {
     expect(fieldDraftSchema.safeParse({ label: "  ", type: "text", required: false }).success).toBe(false)
   })

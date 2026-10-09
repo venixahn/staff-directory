@@ -1,4 +1,4 @@
-import type { Employee } from "@staff/shared"
+import { textValue, type Employee } from "@staff/shared"
 import { A, useNavigate } from "@solidjs/router"
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js"
 import { Subject } from "rxjs"
@@ -73,9 +73,9 @@ export function DirectoryPage() {
                       {displayName(employee)}
                     </A>
                   </td>
-                  <td>{employee.values.email}</td>
-                  <td>{employee.values.department}</td>
-                  <td>{employee.values.jobTitle}</td>
+                  <td>{textValue(employee.values, "email")}</td>
+                  <td>{textValue(employee.values, "department")}</td>
+                  <td>{textValue(employee.values, "jobTitle")}</td>
                 </tr>
               )}
             </For>

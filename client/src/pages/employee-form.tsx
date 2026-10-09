@@ -1,13 +1,14 @@
-import type { Field } from "@staff/shared"
+import { emptyValue, filledEntries, isRecords, recordEntries, textValue, type EmployeeValues, type Field, type FieldValue } from "@staff/shared"
 import { A, useNavigate, useParams } from "@solidjs/router"
 import { createSignal, For, onMount, Show } from "solid-js"
 import { createEmployee, getEmployee, listFields, updateEmployee } from "../api"
+import { RecordsEditor } from "../records-editor"
 
 export function EmployeeFormPage() {
   const params = useParams<{ id?: string }>()
   const navigate = useNavigate()
   const [fields, setFields] = createSignal<Field[]>([])
-  const [values, setValues] = createSignal<Record<string, string>>({})
+  const [values, setValues] = createSignal<EmployeeValues>({})
   const [error, setError] = createSignal("")
   const editing = () => Boolean(params.id)
 
@@ -30,14 +31,15 @@ export function EmployeeFormPage() {
     }
   }
 
-  function setValue(id: string, value: string) {
+  function setValue(id: string, value: FieldValue) {
     setValues({ ...values(), [id]: value })
   }
 
   async function onSubmit(event: SubmitEvent) {
     event.preventDefault()
     try {
-      const saved = params.id ? await updateEmployee(params.id, values()) : await createEmployee(values())
+      const body = withoutBlankEntries(fields(), values())
+      const saved = params.id ? await updateEmployee(params.id, body) : await createEmployee(body)
       navigate(`/employees/${saved.id}`)
     } catch (cause) {
       setError(messageOf(cause))
@@ -54,13 +56,28 @@ export function EmployeeFormPage() {
         <div class="card-body grid gap-4">
           <For each={fields()}>
             {(field) => (
-              <label class="flex flex-col gap-1">
-                <span class="label-text">
-                  {field.label}
-                  {field.required ? " *" : ""}
-                </span>
-                <FieldControl field={field} value={values()[field.id] ?? ""} onChange={(value) => setValue(field.id, value)} />
-              </label>
+              <Show
+                when={isRecords(field)}
+                fallback={
+                  <label class="flex flex-col gap-1">
+                    <span class="label-text">
+                      {field.label}
+                      {field.required ? " *" : ""}
+                    </span>
+                    <FieldControl
+                      field={field}
+                      value={textValue(values(), field.id)}
+                      onChange={(value) => setValue(field.id, value)}
+                    />
+                  </label>
+                }
+              >
+                <RecordsEditor
+                  field={field}
+                  entries={recordEntries(values(), field.id)}
+                  onChange={(entries) => setValue(field.id, entries)}
+                />
+              </Show>
             )}
           </For>
           <div class="flex gap-2">
@@ -117,15 +134,14 @@ function inputType(type: Field["type"]) {
   return "text"
 }
 
-function blankValues(fields: Field[]) {
-  const values: Record<string, string> = {}
-  for (const field of fields) values[field.id] = defaultValue(field)
-  return values
+function blankValues(fields: Field[]): EmployeeValues {
+  return Object.fromEntries(fields.map((field) => [field.id, emptyValue(field)]))
 }
 
-function defaultValue(field: Field) {
-  if (field.type === "select") return field.options?.[0] ?? ""
-  return ""
+function withoutBlankEntries(fields: Field[], values: EmployeeValues): EmployeeValues {
+  const cleaned = { ...values }
+  for (const field of fields.filter(isRecords)) cleaned[field.id] = filledEntries(recordEntries(values, field.id))
+  return cleaned
 }
 
 function messageOf(cause: unknown) {

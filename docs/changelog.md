@@ -21,3 +21,5 @@
 - PDF layouts gain page size, margins, title and text size, profile columns and label placement, and report row spacing. PDF endpoints render an unsaved layout sent in the request body.
 - WYSIWYG PDF designers for one profile and for the report: edit the title in place, drag and hide fields on a page-sized preview that uses the PDF's own spacing, then download or save as the default layout.
 - `npm run typecheck` checks shared, server, client, and the Playwright files (which get their own Node-typed tsconfig). The pre-commit hook runs it, and the server type errors it found are fixed.
+- Records fields hold lists of entries with their own columns. Education, Employment history, and Family members ship as starter fields. Profiles show each one as a table, the form edits entries in place, search looks inside them, and the profile PDF renders them as full-width sections.
+- Clicking Edit on the fields page scrolls the form into view and focuses the label, so editing a field low in the list no longer happens off-screen.

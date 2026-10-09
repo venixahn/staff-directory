@@ -1,4 +1,4 @@
-import { planReport, type Employee, type Field, type ReportLayout } from "@staff/shared"
+import { isRecords, planReport, type Employee, type Field, type ReportLayout } from "@staff/shared"
 import { Subject } from "rxjs"
 import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js"
 import { downloadPdf, getReportLayout, listEmployees, listFields, saveReportLayout } from "../api"
@@ -12,6 +12,7 @@ import { directoryQuery, setDirectoryQuery } from "../state"
 
 export function ExportPage() {
   const [fields, setFields] = createSignal<Field[]>([])
+  const scalarFields = () => fields().filter((field) => !isRecords(field))
   const [employees, setEmployees] = createSignal<Employee[]>([])
   const [saved, setSaved] = createSignal<ReportLayout | null>(null)
   const [draft, setDraft] = createSignal<ReportLayout | null>(null)
@@ -121,7 +122,7 @@ export function ExportPage() {
         {(current) => (
           <div class="flex flex-wrap items-end gap-3 rounded-box bg-base-100 p-3 shadow-sm" aria-label="Layout settings">
             <PaperControls value={current} bodyMax={14} onChange={(paper) => update(paper)} />
-            <FieldChoice label="Sort by" fields={fields()} value={current.sortFieldId} onChange={(sortFieldId) => update({ sortFieldId })} />
+            <FieldChoice label="Sort by" fields={scalarFields()} value={current.sortFieldId} onChange={(sortFieldId) => update({ sortFieldId })} />
             <Choice
               label="Sort direction"
               value={current.sortDirection}
@@ -130,7 +131,7 @@ export function ExportPage() {
             />
             <FieldChoice
               label="Group by"
-              fields={fields()}
+              fields={scalarFields()}
               value={current.groupByFieldId ?? ""}
               empty="No grouping"
               onChange={(value) => update({ groupByFieldId: value || null })}
@@ -147,7 +148,7 @@ export function ExportPage() {
       <Show when={draft()} keyed>
         {(current) => (
           <HiddenFields
-            fields={fields()}
+            fields={scalarFields()}
             shown={current.columnIds}
             onAdd={(id) => update({ columnIds: toggleId(current.columnIds, id, true) })}
           />
