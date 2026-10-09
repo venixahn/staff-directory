@@ -13,5 +13,11 @@ export default defineConfig({
     include: ["test/api/**/*.test.ts"],
     testTimeout: 20000,
     hookTimeout: 20000,
+    coverage: {
+      provider: "istanbul",
+      reporter: ["text", "html", "lcov"],
+      reportsDirectory: "coverage/integration",
+      include: ["src/**/*.ts"],
+    },
   },
 })

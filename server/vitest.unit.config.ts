@@ -11,5 +11,11 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["test/unit/**/*.test.ts"],
+    coverage: {
+      provider: "istanbul",
+      reporter: ["text", "html", "lcov"],
+      reportsDirectory: "coverage/unit",
+      include: ["src/**/*.ts"],
+    },
   },
 })

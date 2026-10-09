@@ -14,6 +14,10 @@
     "test:api": "npm run test:api --workspace=server --if-present",
     "test:e2e": "npm run test:e2e --workspace=client --if-present",
     "test": "npm run test:unit && npm run test:api && npm run test:e2e",
+    "test:coverage:unit": "npm run test:coverage:unit --workspace=@staff/shared && npm run test:coverage:unit --workspace=@staff/server && npm run test:coverage:unit --workspace=@staff/client",
+    "test:coverage:integration": "npm run test:coverage:integration --workspace=@staff/server",
+    "test:coverage:e2e": "npm run test:e2e:coverage --workspace=@staff/client",
+    "test:coverage": "npm run test:coverage:unit && npm run test:coverage:integration && npm run test:coverage:e2e",
     "prepare": "husky"
   },
   "devDependencies": {

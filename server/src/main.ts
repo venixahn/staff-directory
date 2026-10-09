@@ -4,7 +4,7 @@ import { resolveDbPath } from "./database/db-path"
 
 async function bootstrap() {
   const app = await createApp(resolveDbPath())
-  await app.listen(3000)
+  await app.listen(Number(process.env.STAFF_PORT ?? 3000))
 }
 
 void bootstrap()

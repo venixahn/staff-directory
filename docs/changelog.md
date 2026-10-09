@@ -12,3 +12,4 @@
 - Field manager and export screen for saved PDF layouts.
 - Directory list reloads after an employee is deleted.
 - Playwright coverage for the user stories, using a fresh end-to-end database file.
+- Separate Istanbul reports for unit tests, the API integration suite, and end-to-end browser and server runs. End-to-end uses ports 3010 and 5174 so the dev server can stay on 3000 and 5173.
