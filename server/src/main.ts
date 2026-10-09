@@ -1,10 +1,9 @@
 import "reflect-metadata"
-import { NestFactory } from "@nestjs/core"
-import { AppModule } from "./app.module"
+import { createApp } from "./create-app"
+import { resolveDbPath } from "./database/db-path"
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
-  app.setGlobalPrefix("api")
+  const app = await createApp(resolveDbPath())
   await app.listen(3000)
 }
 
