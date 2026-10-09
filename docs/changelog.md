@@ -14,3 +14,6 @@
 - Playwright coverage for the user stories, using a fresh end-to-end database file.
 - Separate Istanbul reports for unit tests, the API integration suite, and end-to-end browser and server runs. End-to-end uses ports 3010 and 5174 so the dev server can stay on 3000 and 5173.
 - Fields page reorders by drag and drop.
+- End-to-end runs start from fresh seed data. The test API clears its file before loading it, so one run no longer inherits the previous run's changes.
+- The row under a dragged field is outlined, so you can see where it will land.
+- Directory rows open an employee profile with Edit, Download PDF, and Delete. Deleting an employee or a field asks you to type its name in an in-page dialog, because embedded browsers can skip native confirm prompts.

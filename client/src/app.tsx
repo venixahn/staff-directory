@@ -4,13 +4,15 @@ import { DirectoryPage } from "./pages/directory"
 import { EmployeeFormPage } from "./pages/employee-form"
 import { ExportPage } from "./pages/export"
 import { FieldsPage } from "./pages/fields"
+import { ProfilePage } from "./pages/profile"
 
 export function App() {
   return (
     <Router root={Shell}>
       <Route path="/" component={DirectoryPage} />
       <Route path="/employees/new" component={EmployeeFormPage} />
-      <Route path="/employees/:id" component={EmployeeFormPage} />
+      <Route path="/employees/:id" component={ProfilePage} />
+      <Route path="/employees/:id/edit" component={EmployeeFormPage} />
       <Route path="/fields" component={FieldsPage} />
       <Route path="/export" component={ExportPage} />
     </Router>

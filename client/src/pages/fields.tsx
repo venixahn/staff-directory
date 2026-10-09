@@ -1,6 +1,7 @@
 import type { Field, FieldDraft, FieldType } from "@staff/shared"
 import { createSignal, For, onMount, Show } from "solid-js"
 import { createField, listFields, removeField, reorderFields, updateField } from "../api"
+import { ConfirmDialog } from "../confirm-dialog"
 import { dragItem } from "../drag"
 import { relocateId } from "../order"
 
@@ -12,6 +13,7 @@ export function FieldsPage() {
   const [optionsText, setOptionsText] = createSignal("")
   const [editingId, setEditingId] = createSignal<string | null>(null)
   const [error, setError] = createSignal("")
+  const [pendingDelete, setPendingDelete] = createSignal<Field | null>(null)
 
   onMount(() => {
     void refresh()
@@ -45,7 +47,7 @@ export function FieldsPage() {
   }
 
   async function onDelete(field: Field) {
-    if (!confirm(`Delete ${field.label}?`)) return
+    setPendingDelete(null)
     try {
       await removeField(field.id)
       await refresh()
@@ -125,12 +127,25 @@ export function FieldsPage() {
             <FieldRow
               field={field}
               onEdit={() => beginEdit(field)}
-              onDelete={() => void onDelete(field)}
+              onDelete={() => setPendingDelete(field)}
               onReorder={onReorder}
             />
           )}
         </For>
       </ul>
+      <Show when={pendingDelete()} keyed>
+        {(field) => (
+          <ConfirmDialog
+            title={`Delete the ${field.label} field?`}
+            confirmText={field.label}
+            actionLabel="Delete field"
+            onConfirm={() => void onDelete(field)}
+            onCancel={() => setPendingDelete(null)}
+          >
+            <p>Every employee loses the value stored in this field, and both PDF layouts drop it. It cannot be undone.</p>
+          </ConfirmDialog>
+        )}
+      </Show>
     </section>
   )
 }

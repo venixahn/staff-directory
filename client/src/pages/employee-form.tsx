@@ -37,9 +37,8 @@ export function EmployeeFormPage() {
   async function onSubmit(event: SubmitEvent) {
     event.preventDefault()
     try {
-      if (params.id) await updateEmployee(params.id, values())
-      else await createEmployee(values())
-      navigate("/")
+      const saved = params.id ? await updateEmployee(params.id, values()) : await createEmployee(values())
+      navigate(`/employees/${saved.id}`)
     } catch (cause) {
       setError(messageOf(cause))
     }
@@ -68,7 +67,7 @@ export function EmployeeFormPage() {
             <button class="btn btn-primary" type="submit">
               Save
             </button>
-            <A class="btn" href="/">
+            <A class="btn" href={params.id ? `/employees/${params.id}` : "/"}>
               Cancel
             </A>
           </div>

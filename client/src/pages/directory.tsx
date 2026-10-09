@@ -1,21 +1,28 @@
 import type { Employee } from "@staff/shared"
-import { A } from "@solidjs/router"
+import { A, useNavigate } from "@solidjs/router"
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js"
 import { Subject } from "rxjs"
-import { downloadPdf, listEmployees, removeEmployee } from "../api"
+import { listEmployees } from "../api"
+import { displayName, messageOf } from "../employee-name"
 import { bindSearch } from "../search"
 import { directoryQuery, setDirectoryQuery } from "../state"
 
 export function DirectoryPage() {
+  const navigate = useNavigate()
   const [rows, setRows] = createSignal<Employee[]>([])
   const [error, setError] = createSignal("")
   const query$ = new Subject<string>()
 
   onMount(() => {
-    const stop = bindSearch(query$, listEmployees, (employees) => {
-      setRows(employees)
-      setError("")
-    })
+    const stop = bindSearch(
+      query$,
+      (query) =>
+        listEmployees(query).catch((cause: unknown) => {
+          setError(messageOf(cause))
+          return rows()
+        }),
+      (employees) => setRows(employees),
+    )
     query$.next(directoryQuery())
     onCleanup(() => {
       stop()
@@ -25,17 +32,8 @@ export function DirectoryPage() {
 
   function onSearch(value: string) {
     setDirectoryQuery(value)
+    setError("")
     query$.next(value)
-  }
-
-  async function onDelete(employee: Employee) {
-    if (!confirm(`Delete ${displayName(employee)}?`)) return
-    try {
-      await removeEmployee(employee.id)
-      setRows(await listEmployees(directoryQuery()))
-    } catch (cause) {
-      setError(messageOf(cause))
-    }
   }
 
   return (
@@ -64,50 +62,26 @@ export function DirectoryPage() {
               <th>Email</th>
               <th>Department</th>
               <th>Job title</th>
-              <th></th>
             </tr>
           </thead>
           <tbody>
-            <For each={rows()} fallback={<tr><td colspan="5">No employees match this search.</td></tr>}>
-              {(employee) => <DirectoryRow employee={employee} onDelete={() => void onDelete(employee)} />}
+            <For each={rows()} fallback={<tr><td colspan="4">No employees match this search.</td></tr>}>
+              {(employee) => (
+                <tr class="hover:bg-base-200 cursor-pointer" onClick={() => navigate(`/employees/${employee.id}`)}>
+                  <td>
+                    <A class="link link-hover font-medium" href={`/employees/${employee.id}`}>
+                      {displayName(employee)}
+                    </A>
+                  </td>
+                  <td>{employee.values.email}</td>
+                  <td>{employee.values.department}</td>
+                  <td>{employee.values.jobTitle}</td>
+                </tr>
+              )}
             </For>
           </tbody>
         </table>
       </div>
     </section>
   )
-}
-
-function DirectoryRow(props: { employee: Employee; onDelete: () => void }) {
-  return (
-    <tr>
-      <td>{displayName(props.employee)}</td>
-      <td>{props.employee.values.email}</td>
-      <td>{props.employee.values.department}</td>
-      <td>{props.employee.values.jobTitle}</td>
-      <td class="flex flex-wrap gap-2">
-        <A class="btn btn-sm" href={`/employees/${props.employee.id}`}>
-          Edit
-        </A>
-        <button class="btn btn-sm" type="button" onClick={() => void downloadProfile(props.employee)}>
-          PDF
-        </button>
-        <button class="btn btn-sm btn-error btn-outline" type="button" onClick={props.onDelete}>
-          Delete
-        </button>
-      </td>
-    </tr>
-  )
-}
-
-async function downloadProfile(employee: Employee) {
-  await downloadPdf(`/api/pdf/profile/${employee.id}`, `${displayName(employee)}.pdf`)
-}
-
-function displayName(employee: Employee) {
-  return `${employee.values.firstName ?? ""} ${employee.values.lastName ?? ""}`.trim()
-}
-
-function messageOf(cause: unknown) {
-  return cause instanceof Error ? cause.message : "Something went wrong"
 }
