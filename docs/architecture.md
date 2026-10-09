@@ -12,6 +12,18 @@ flowchart LR
   Effect --> PDF[pdfmake]
 ```
 
+## PDF plan
+
+```mermaid
+flowchart LR
+  Layout[layout_draft] --> Planner[shared_planProfile_planReport]
+  Data[employees_and_fields] --> Planner
+  Planner --> Plan[PdfPlan]
+  Plan --> Canvas[client_PageCanvas]
+  Plan --> Doc[server_toDocDefinition]
+  Doc --> Bytes[pdfmake_bytes]
+```
+
 ## Request flow
 
 ```mermaid

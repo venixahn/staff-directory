@@ -1,229 +1,198 @@
-import type { Field, ProfileLayout, ReportLayout } from "@staff/shared"
-import { createSignal, For, onMount, Show, type ParentProps } from "solid-js"
-import { downloadPdf, getProfileLayout, getReportLayout, listFields, saveProfileLayout, saveReportLayout } from "../api"
-import { moveId, toggleId } from "../order"
+import { planReport, type Employee, type Field, type ReportLayout } from "@staff/shared"
+import { Subject } from "rxjs"
+import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js"
+import { downloadPdf, getReportLayout, listEmployees, listFields, saveReportLayout } from "../api"
+import { messageOf } from "../employee-name"
+import { relocateId, toggleId } from "../order"
+import { Choice, PaperControls } from "../pdf/controls"
+import { HiddenFields } from "../pdf/hidden-fields"
+import { PageCanvas } from "../pdf/page-canvas"
+import { bindSearch } from "../search"
 import { directoryQuery, setDirectoryQuery } from "../state"
 
 export function ExportPage() {
   const [fields, setFields] = createSignal<Field[]>([])
-  const [profile, setProfile] = createSignal<ProfileLayout | null>(null)
-  const [report, setReport] = createSignal<ReportLayout | null>(null)
-  const [error, setError] = createSignal("")
+  const [employees, setEmployees] = createSignal<Employee[]>([])
+  const [saved, setSaved] = createSignal<ReportLayout | null>(null)
+  const [draft, setDraft] = createSignal<ReportLayout | null>(null)
   const [notice, setNotice] = createSignal("")
+  const [error, setError] = createSignal("")
+  const query$ = new Subject<string>()
 
   onMount(() => {
     void load()
+    const stop = bindSearch(
+      query$,
+      (query) =>
+        listEmployees(query).catch((cause: unknown) => {
+          setError(messageOf(cause))
+          return employees()
+        }),
+      setEmployees,
+    )
+    query$.next(directoryQuery())
+    onCleanup(() => {
+      stop()
+      query$.complete()
+    })
   })
 
   async function load() {
     try {
-      const [nextFields, nextProfile, nextReport] = await Promise.all([
-        listFields(),
-        getProfileLayout(),
-        getReportLayout(),
-      ])
+      const [nextFields, layout] = await Promise.all([listFields(), getReportLayout()])
       setFields(nextFields)
-      setProfile(nextProfile)
-      setReport(nextReport)
+      setSaved(layout)
+      setDraft(layout)
     } catch (cause) {
       setError(messageOf(cause))
     }
   }
 
-  async function saveProfile() {
-    const current = profile()
-    if (!current) return
-    setProfile(await saveProfileLayout(current))
-    setNotice("Profile layout saved")
+  const plan = createMemo(() => {
+    const current = draft()
+    return current ? planReport(employees(), fields(), current) : null
+  })
+
+  function update(patch: Partial<ReportLayout>) {
+    const current = draft()
+    if (current) setDraft({ ...current, ...patch })
+    setNotice("")
   }
 
-  async function saveReport() {
-    const current = report()
-    if (!current) return
-    setReport(await saveReportLayout(current))
-    setNotice("Report layout saved")
+  function onSearch(value: string) {
+    setDirectoryQuery(value)
+    query$.next(value)
   }
 
-  async function downloadReport() {
-    const query = encodeURIComponent(directoryQuery())
-    await downloadPdf(`/api/pdf/report?q=${query}`, "employee-directory.pdf")
+  async function onDownload() {
+    const current = draft()
+    if (!current) return
+    try {
+      const query = encodeURIComponent(directoryQuery())
+      await downloadPdf(`/api/pdf/report?q=${query}`, "employee-directory.pdf", { layout: current })
+    } catch (cause) {
+      setError(messageOf(cause))
+    }
+  }
+
+  async function onSave() {
+    const current = draft()
+    if (!current) return
+    try {
+      const next = await saveReportLayout(current)
+      setSaved(next)
+      setDraft(next)
+      setNotice("Saved as the default report layout")
+    } catch (cause) {
+      setError(messageOf(cause))
+    }
   }
 
   return (
-    <section class="grid gap-6">
-      <h1 class="text-2xl font-semibold">Export</h1>
+    <section class="grid gap-4">
+      <header class="flex flex-wrap items-center justify-between gap-3">
+        <h1 class="text-2xl font-semibold">Report PDF</h1>
+        <div class="flex flex-wrap gap-2">
+          <button class="btn" type="button" disabled={draft() === saved()} onClick={() => setDraft(saved())}>
+            Reset
+          </button>
+          <button class="btn" type="button" onClick={() => void onSave()}>
+            Save as default layout
+          </button>
+          <button class="btn btn-primary" type="button" onClick={() => void onDownload()}>
+            Download report
+          </button>
+        </div>
+      </header>
       <Show when={error()}>
         <p class="alert alert-error">{error()}</p>
       </Show>
       <Show when={notice()}>
         <p class="alert alert-success">{notice()}</p>
       </Show>
-      <label class="form-control gap-1">
-        <span>Report search</span>
-        <input
-          class="input input-bordered"
-          aria-label="Report search"
-          value={directoryQuery()}
-          onInput={(event) => setDirectoryQuery(event.currentTarget.value)}
-        />
-      </label>
-      <Show when={profile()} keyed>
+      <input
+        class="input input-bordered"
+        aria-label="Report search"
+        placeholder="Who goes in the report? Search name, email, department, or job title"
+        value={directoryQuery()}
+        onInput={(event) => onSearch(event.currentTarget.value)}
+      />
+      <Show when={draft()} keyed>
         {(current) => (
-          <LayoutCard title="Profile layout" saveLabel="Save profile" onSave={() => void saveProfile()}>
-            <LayoutTitle label="Profile title" value={current.title} onChange={(title) => setProfile({ ...current, title })} />
-            <Orientation label="Profile orientation" value={current.orientation} onChange={(orientation) => setProfile({ ...current, orientation })} />
-            <label class="label cursor-pointer justify-start gap-2">
-              <input
-                class="checkbox"
-                type="checkbox"
-                checked={current.showEmptyFields}
-                onChange={(event) => setProfile({ ...current, showEmptyFields: event.currentTarget.checked })}
-              />
-              Show empty fields
-            </label>
-            <FieldPicker
-              fields={fields()}
-              selected={current.fieldIds}
-              onChange={(fieldIds) => setProfile({ ...current, fieldIds })}
+          <div class="flex flex-wrap items-end gap-3 rounded-box bg-base-100 p-3 shadow-sm" aria-label="Layout settings">
+            <PaperControls value={current} bodyMax={14} onChange={(paper) => update(paper)} />
+            <FieldChoice label="Sort by" fields={fields()} value={current.sortFieldId} onChange={(sortFieldId) => update({ sortFieldId })} />
+            <Choice
+              label="Sort direction"
+              value={current.sortDirection}
+              options={[["asc", "A to Z"], ["desc", "Z to A"]]}
+              onChange={(value) => update({ sortDirection: value === "desc" ? "desc" : "asc" })}
             />
-          </LayoutCard>
+            <FieldChoice
+              label="Group by"
+              fields={fields()}
+              value={current.groupByFieldId ?? ""}
+              empty="No grouping"
+              onChange={(value) => update({ groupByFieldId: value || null })}
+            />
+            <Choice
+              label="Row spacing"
+              value={current.density}
+              options={[["comfortable", "Comfortable"], ["compact", "Compact"]]}
+              onChange={(value) => update({ density: value === "compact" ? "compact" : "comfortable" })}
+            />
+          </div>
         )}
       </Show>
-      <Show when={report()} keyed>
+      <Show when={draft()} keyed>
         {(current) => (
-          <LayoutCard title="Report layout" saveLabel="Save report" onSave={() => void saveReport()}>
-            <LayoutTitle label="Report title" value={current.title} onChange={(title) => setReport({ ...current, title })} />
-            <Orientation label="Report orientation" value={current.orientation} onChange={(orientation) => setReport({ ...current, orientation })} />
-            <SortControls layout={current} fields={fields()} onChange={setReport} />
-            <FieldPicker
-              fields={fields()}
-              selected={current.columnIds}
-              onChange={(columnIds) => setReport({ ...current, columnIds })}
-            />
-            <button class="btn" type="button" onClick={() => void downloadReport()}>
-              Download report
-            </button>
-          </LayoutCard>
+          <HiddenFields
+            fields={fields()}
+            shown={current.columnIds}
+            onAdd={(id) => update({ columnIds: toggleId(current.columnIds, id, true) })}
+          />
+        )}
+      </Show>
+      <p class="text-sm opacity-70">
+        Click the title to rename it. Drag a column heading to move it. Hover a heading and press × to remove the column.
+      </p>
+      <Show when={plan()}>
+        {(current) => (
+          <PageCanvas
+            plan={current()}
+            actions={{
+              onTitle: (title) => update({ title }),
+              onMove: (source, target) => update({ columnIds: relocateId(draft()?.columnIds ?? [], source, target) }),
+              onHide: (id) => update({ columnIds: toggleId(draft()?.columnIds ?? [], id, false) }),
+            }}
+          />
         )}
       </Show>
     </section>
   )
 }
 
-function LayoutCard(props: ParentProps<{ title: string; saveLabel: string; onSave: () => void }>) {
-  return (
-    <section class="card bg-base-100 shadow-sm">
-      <div class="card-body grid gap-3">
-        <h2 class="text-lg font-medium">{props.title}</h2>
-        {props.children}
-        <button class="btn btn-primary w-fit" type="button" onClick={props.onSave}>
-          {props.saveLabel}
-        </button>
-      </div>
-    </section>
-  )
-}
-
-function LayoutTitle(props: { label: string; value: string; onChange: (value: string) => void }) {
-  return (
-    <input
-      class="input input-bordered"
-      aria-label={props.label}
-      value={props.value}
-      onInput={(event) => props.onChange(event.currentTarget.value)}
-    />
-  )
-}
-
-function Orientation(props: {
+function FieldChoice(props: {
   label: string
-  value: "portrait" | "landscape"
-  onChange: (value: "portrait" | "landscape") => void
+  fields: Field[]
+  value: string
+  empty?: string
+  onChange: (value: string) => void
 }) {
   return (
-    <select
-      class="select select-bordered"
-      aria-label={props.label}
-      value={props.value}
-      onChange={(event) => props.onChange(event.currentTarget.value as "portrait" | "landscape")}
-    >
-      <option value="portrait">Portrait</option>
-      <option value="landscape">Landscape</option>
-    </select>
-  )
-}
-
-function SortControls(props: { layout: ReportLayout; fields: Field[]; onChange: (layout: ReportLayout) => void }) {
-  return (
-    <div class="grid gap-3 md:grid-cols-3">
+    <label class="flex flex-col gap-1">
+      <span class="label-text text-xs">{props.label}</span>
       <select
-        class="select select-bordered"
-        aria-label="Sort field"
-        value={props.layout.sortFieldId}
-        onChange={(event) => props.onChange({ ...props.layout, sortFieldId: event.currentTarget.value })}
+        class="select select-bordered select-sm"
+        aria-label={props.label}
+        value={props.value}
+        onChange={(event) => props.onChange(event.currentTarget.value)}
       >
+        <Show when={props.empty}>
+          <option value="">{props.empty}</option>
+        </Show>
         <For each={props.fields}>{(field) => <option value={field.id}>{field.label}</option>}</For>
       </select>
-      <select
-        class="select select-bordered"
-        aria-label="Sort direction"
-        value={props.layout.sortDirection}
-        onChange={(event) =>
-          props.onChange({ ...props.layout, sortDirection: event.currentTarget.value as "asc" | "desc" })
-        }
-      >
-        <option value="asc">Ascending</option>
-        <option value="desc">Descending</option>
-      </select>
-      <select
-        class="select select-bordered"
-        aria-label="Group by"
-        value={props.layout.groupByFieldId ?? ""}
-        onChange={(event) => props.onChange({ ...props.layout, groupByFieldId: event.currentTarget.value || null })}
-      >
-        <option value="">No grouping</option>
-        <For each={props.fields}>{(field) => <option value={field.id}>{field.label}</option>}</For>
-      </select>
-    </div>
+    </label>
   )
-}
-
-function FieldPicker(props: { fields: Field[]; selected: string[]; onChange: (ids: string[]) => void }) {
-  return (
-    <ul class="grid gap-2">
-      <For each={visibleFields(props.fields, props.selected)}>
-        {(field) => (
-          <li class="flex items-center gap-2">
-            <input
-              class="checkbox"
-              type="checkbox"
-              aria-label={field.label}
-              checked={props.selected.includes(field.id)}
-              onChange={(event) => props.onChange(toggleId(props.selected, field.id, event.currentTarget.checked))}
-            />
-            <span class="flex-1">{field.label}</span>
-            <button class="btn btn-xs" type="button" onClick={() => props.onChange(moveId(props.selected, field.id, -1))}>
-              Up
-            </button>
-            <button class="btn btn-xs" type="button" onClick={() => props.onChange(moveId(props.selected, field.id, 1))}>
-              Down
-            </button>
-          </li>
-        )}
-      </For>
-    </ul>
-  )
-}
-
-function visibleFields(fields: Field[], selected: string[]) {
-  const chosen = selected.flatMap((id) => {
-    const field = fields.find((item) => item.id === id)
-    return field ? [field] : []
-  })
-  const rest = fields.filter((field) => !selected.includes(field.id))
-  return [...chosen, ...rest]
-}
-
-function messageOf(cause: unknown) {
-  return cause instanceof Error ? cause.message : "Something went wrong"
 }

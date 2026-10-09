@@ -45,6 +45,8 @@ Both layouts share page size (A4 or Letter), orientation, margins (narrow 24 pt,
 
 ## PDF
 
-`planProfile` and `planReport` in `@staff/shared` are pure functions. They turn employees, field definitions, and a layout into a `PdfPlan`: page box, title, and blocks (fields, two-column groups, or a table). The server converts the plan to a pdfmake document and renders it to bytes.
+`planProfile` and `planReport` in `@staff/shared` are pure functions. They turn employees, field definitions, and a layout into a `PdfPlan`: page box, title, and blocks (fields, two-column groups, or a table). The server converts the plan to a pdfmake document and renders it to bytes. The client draws the same plan as a page-sized canvas, scaled from points to pixels, so what you edit is what you download.
 
-The renderer reads spacing from `pdfSpacing`: line height, title gap, column gap, field gaps, and cell padding. Line height is 0.925 of the font size, because pdfmake lays Helvetica lines out at ascender minus descender.
+Both renderers read spacing from `pdfSpacing`: line height, title gap, column gap, field gaps, and cell padding. Line height is 0.925 of the font size, because pdfmake lays Helvetica lines out at ascender minus descender. Field gaps are padding on the canvas, because pdfmake adds neighbouring margins instead of collapsing them.
+
+The designer screens are `/employees/:id/pdf` (one profile) and `/export` (report of the current search). On the canvas you rename the title in place, drag fields or column headings to reorder them, and hover a field to hide it. Hidden fields appear as `+ Field` chips. The toolbar holds the paper and layout settings. Download sends the draft; Save as default layout stores it; Reset returns to the saved layout.
