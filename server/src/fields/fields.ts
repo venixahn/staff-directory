@@ -1,7 +1,12 @@
 import {
+  isRecords,
+  recordEntries,
   uniqueSlug,
+  type Employee,
   type Field,
   type FieldDraft,
+  type RecordColumn,
+  type RecordEntry,
   type ReportLayout,
   type StaffDatabase,
 } from "@staff/shared"
@@ -64,7 +69,12 @@ function changeField(
   const merged = mergeField(current, draft)
   if (merged.message) return Effect.fail(invalidField(merged.message))
   return Effect.succeed({
-    data: { ...data, fields: data.fields.map((field) => (field.id === id ? merged.field : field)) },
+    data: {
+      ...data,
+      fields: data.fields.map((field) => (field.id === id ? merged.field : field)),
+      employees: reconcileValues(data.employees, current, merged.field),
+      layouts: isRecords(merged.field) ? { ...data.layouts, report: cleanReport(data.layouts.report, id) } : data.layouts,
+    },
     value: merged.field,
   })
 }
@@ -98,6 +108,7 @@ function fieldFromDraft(draft: FieldDraft, taken: Set<string>): Field {
     required: draft.required,
     builtin: false,
     options: draft.type === "select" ? draft.options : undefined,
+    columns: recordColumns(draft, []),
   }
 }
 
@@ -112,8 +123,35 @@ function mergeField(field: Field, draft: FieldDraft): { field: Field; message?: 
       type: draft.type,
       required: draft.required,
       options: draft.type === "select" ? draft.options : undefined,
+      columns: recordColumns(draft, field.columns ?? []),
     },
   }
+}
+
+function recordColumns(draft: FieldDraft, current: RecordColumn[]): RecordColumn[] | undefined {
+  if (draft.type !== "records") return undefined
+  const kept = new Set(current.map((column) => column.id))
+  const taken = new Set<string>()
+  return (draft.columns ?? []).map((column) => {
+    const reusable = column.id !== undefined && kept.has(column.id) && !taken.has(column.id)
+    const id = reusable && column.id ? column.id : uniqueSlug(column.label, new Set([...kept, ...taken]))
+    taken.add(id)
+    return { id, label: column.label, type: column.type }
+  })
+}
+
+function reconcileValues(employees: Employee[], before: Field, after: Field): Employee[] {
+  if (isRecords(before) !== isRecords(after)) return employees.map((employee) => stripValue(employee, after.id))
+  if (!isRecords(after)) return employees
+  const columnIds = new Set((after.columns ?? []).map((column) => column.id))
+  return employees.map((employee) => ({
+    ...employee,
+    values: { ...employee.values, [after.id]: keepColumns(recordEntries(employee.values, after.id), columnIds) },
+  }))
+}
+
+function keepColumns(entries: RecordEntry[], columnIds: Set<string>): RecordEntry[] {
+  return entries.map((entry) => Object.fromEntries(Object.entries(entry).filter(([id]) => columnIds.has(id))))
 }
 
 function withoutField(data: StaffDatabase, id: string): StaffDatabase {

@@ -1,9 +1,10 @@
-import type { Employee, Field } from "@staff/shared"
+import { isRecords, textValue, type Employee, type Field } from "@staff/shared"
 import { A, useNavigate, useParams } from "@solidjs/router"
 import { createSignal, For, onMount, Show } from "solid-js"
 import { getEmployee, listFields, removeEmployee } from "../api"
 import { ConfirmDialog } from "../confirm-dialog"
 import { displayName, messageOf } from "../employee-name"
+import { RecordsTable } from "../records-table"
 
 export function ProfilePage() {
   const params = useParams<{ id: string }>()
@@ -67,16 +68,17 @@ export function ProfilePage() {
             </header>
             <dl class="card bg-base-100 shadow-sm">
               <div class="card-body grid gap-3 sm:grid-cols-[12rem_1fr]">
-                <For each={fields()}>
+                <For each={fields().filter((field) => !isRecords(field))}>
                   {(field) => (
                     <>
                       <dt class="font-medium opacity-70">{field.label}</dt>
-                      <dd>{current.values[field.id] || "—"}</dd>
+                      <dd>{textValue(current.values, field.id) || "—"}</dd>
                     </>
                   )}
                 </For>
               </div>
             </dl>
+            <For each={fields().filter(isRecords)}>{(field) => <RecordsTable field={field} values={current.values} />}</For>
             <Show when={confirming()}>
               <ConfirmDialog
                 title={`Delete ${displayName(current)}?`}
@@ -96,5 +98,5 @@ export function ProfilePage() {
 }
 
 function subtitle(employee: Employee) {
-  return [employee.values.jobTitle, employee.values.department].filter((part) => part).join(" · ")
+  return [textValue(employee.values, "jobTitle"), textValue(employee.values, "department")].filter((part) => part).join(" · ")
 }

@@ -1,4 +1,11 @@
-import { pdfSpacing, type PdfPlan, type PlannedBlock, type PlannedField, type PlannedTable } from "@staff/shared"
+import {
+  pdfSpacing,
+  type PdfPlan,
+  type PlannedBlock,
+  type PlannedField,
+  type PlannedSection,
+  type PlannedTable,
+} from "@staff/shared"
 import { createRequire } from "node:module"
 import type { Readable } from "node:stream"
 
@@ -40,7 +47,29 @@ export function toDocDefinition(plan: PdfPlan) {
 function blockContent(block: PlannedBlock): unknown {
   if (block.kind === "field") return fieldContent(block)
   if (block.kind === "columns") return { columns: block.columns.map((column) => column.map(fieldContent)), columnGap: pdfSpacing.columnGap }
+  if (block.kind === "section") return sectionContent(block)
   return tableContent(block)
+}
+
+function sectionContent(section: PlannedSection) {
+  const header = section.columns.map((column) => ({ text: column.label, bold: true }))
+  const body = section.rows.length > 0 ? gridTable([header, ...section.rows], pdfSpacing.sectionCellPadding) : { text: "—" }
+  return {
+    stack: [{ text: section.label, bold: true, margin: [0, 0, 0, pdfSpacing.sectionLabelGap] }, body],
+    margin: [0, pdfSpacing.sectionGap, 0, 0],
+  }
+}
+
+function gridTable(body: unknown[][], padding: number) {
+  return {
+    table: { headerRows: 1, widths: body[0]?.map(() => "*") ?? [], body },
+    layout: {
+      paddingTop: () => padding,
+      paddingBottom: () => padding,
+      paddingLeft: () => pdfSpacing.cellPaddingX,
+      paddingRight: () => pdfSpacing.cellPaddingX,
+    },
+  }
 }
 
 function fieldContent(field: PlannedField) {
@@ -59,15 +88,7 @@ function tableContent(table: PlannedTable) {
   if (span === 0) return { text: "No columns selected", italics: true }
   const header = table.columns.map((column) => ({ text: column.label, bold: true }))
   const rows = table.rows.map((row) => (row.kind === "group" ? groupCells(row.label, span) : row.cells))
-  return {
-    table: { headerRows: 1, widths: table.columns.map(() => "*"), body: [header, ...rows] },
-    layout: {
-      paddingTop: () => table.padding,
-      paddingBottom: () => table.padding,
-      paddingLeft: () => pdfSpacing.cellPaddingX,
-      paddingRight: () => pdfSpacing.cellPaddingX,
-    },
-  }
+  return gridTable([header, ...rows], table.padding)
 }
 
 function groupCells(label: string, span: number) {

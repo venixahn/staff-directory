@@ -1,4 +1,4 @@
-import { pageDimensions, pdfSpacing, type PdfPlan, type PlannedField, type PlannedTable } from "@staff/shared"
+import { pageDimensions, pdfSpacing, type PdfPlan, type PlannedField, type PlannedSection, type PlannedTable } from "@staff/shared"
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js"
 import { dragItem } from "../drag"
 
@@ -53,6 +53,7 @@ export function PageCanvas(props: { plan: PdfPlan; actions: CanvasActions }) {
           {(block) => {
             if (block.kind === "field") return <FieldBlock field={block} actions={props.actions} scale={scale()} />
             if (block.kind === "columns") return <ColumnsBlock columns={block.columns} actions={props.actions} scale={scale()} />
+            if (block.kind === "section") return <SectionBlock section={block} actions={props.actions} scale={scale()} />
             return <TableBlock table={block} actions={props.actions} scale={scale()} />
           }}
         </For>
@@ -148,6 +149,48 @@ function TableBlock(props: { table: PlannedTable; actions: CanvasActions; scale:
         </tbody>
       </table>
     </Show>
+  )
+}
+
+function SectionBlock(props: { section: PlannedSection; actions: CanvasActions; scale: number }) {
+  const cell = () => ({
+    padding: `${pdfSpacing.sectionCellPadding * props.scale}px ${pdfSpacing.cellPaddingX * props.scale}px`,
+    border: `${props.scale}px solid #000`,
+  })
+  return (
+    <div
+      class="group relative cursor-grab rounded outline-none hover:bg-sky-50 focus:bg-sky-50"
+      role="group"
+      tabIndex={0}
+      aria-roledescription="draggable section"
+      aria-label={props.section.label}
+      data-field={props.section.fieldId}
+      style={{ "padding-top": `${pdfSpacing.sectionGap * props.scale}px` }}
+      {...dragItem(props.section.fieldId, props.actions.onMove)}
+    >
+      <b class="block" style={{ "margin-bottom": `${pdfSpacing.sectionLabelGap * props.scale}px` }}>
+        {props.section.label}
+      </b>
+      <Show when={props.section.rows.length > 0} fallback={<span>—</span>}>
+        <table class="w-full table-fixed border-collapse">
+          <thead>
+            <tr>
+              <For each={props.section.columns}>{(column) => <th class="text-left" style={cell()}>{column.label}</th>}</For>
+            </tr>
+          </thead>
+          <tbody>
+            <For each={props.section.rows}>
+              {(row) => (
+                <tr>
+                  <For each={row}>{(value) => <td style={cell()}>{value}</td>}</For>
+                </tr>
+              )}
+            </For>
+          </tbody>
+        </table>
+      </Show>
+      <HideButton label={props.section.label} onHide={() => props.actions.onHide(props.section.fieldId)} />
+    </div>
   )
 }
 

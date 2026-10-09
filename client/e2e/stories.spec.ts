@@ -92,7 +92,7 @@ test("designs the profile PDF on the page", async ({ page }) => {
   const fieldOrder = () => sheet.locator("[data-field]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-field")))
 
   await sheet.getByRole("group", { name: "Office" }).dragTo(sheet.getByRole("group", { name: "First name" }))
-  await expect.poll(fieldOrder).toEqual(["office", "firstName", "lastName", "email", "department", "jobTitle", "hireDate", "status"])
+  await expect.poll(fieldOrder).toEqual(["office", "firstName", "lastName", "email", "department", "jobTitle", "hireDate", "status", "education", "employment", "family"])
 
   await sheet.getByRole("group", { name: "Email" }).hover()
   await page.getByRole("button", { name: "Hide Email" }).click()
@@ -101,9 +101,9 @@ test("designs the profile PDF on the page", async ({ page }) => {
   await expect(sheet).toContainText("ada@example.com")
 
   await page.getByLabel("Columns").selectOption({ label: "Two" })
-  await expect(sheet.locator(".grid-cols-2")).toHaveCount(1)
+  await expect(sheet.locator(".grid-cols-2").first()).toBeVisible()
   await page.getByRole("button", { name: "Reset" }).click()
-  await expect.poll(fieldOrder).toEqual(["firstName", "lastName", "email", "department", "jobTitle", "hireDate", "status", "office"])
+  await expect.poll(fieldOrder).toEqual(["firstName", "lastName", "email", "department", "jobTitle", "hireDate", "status", "office", "education", "employment", "family"])
 })
 
 test("saves the profile layout as the default", async ({ page }) => {
@@ -138,4 +138,33 @@ test("saves the report layout and downloads the current search", async ({ page }
   const download = page.waitForEvent("download")
   await page.getByRole("button", { name: "Download report" }).click()
   expect((await download).suggestedFilename()).toContain(".pdf")
+})
+
+test("adds a records field with its own columns", async ({ page }) => {
+  await page.goto("/fields")
+  await page.getByLabel("Field label").fill("Certificates")
+  await page.getByLabel("Field type").selectOption("records")
+  await page.getByLabel("Column 1 label").fill("Name")
+  await page.getByRole("button", { name: "Add column" }).click()
+  await page.getByLabel("Column 2 label").fill("Issued on")
+  await page.getByLabel("Column 2 type").selectOption("date")
+  await page.getByRole("button", { name: "Add field" }).click()
+  await expect(page.getByText("records: Name, Issued on")).toBeVisible()
+  await page.goto("/employees/emp-ada/edit")
+  await expect(page.getByRole("button", { name: "Add Certificates entry" })).toBeVisible()
+})
+
+test("records education history on a profile and in its PDF", async ({ page }) => {
+  await page.goto("/employees/emp-alan/edit")
+  await page.getByRole("button", { name: "Add Education entry" }).click()
+  await page.getByLabel("Education 1 School").fill("King's College")
+  await page.getByLabel("Education 1 Degree").fill("Mathematics")
+  await page.getByLabel("Education 1 From").fill("1931-10-01")
+  await page.getByRole("button", { name: "Save" }).click()
+  const education = page.getByRole("region", { name: "Education" })
+  await expect(education.getByRole("cell", { name: "King's College" })).toBeVisible()
+  await expect(page.getByRole("region", { name: "Family members" })).toContainText("None recorded")
+
+  await page.getByRole("link", { name: "Download PDF" }).click()
+  await expect(page.getByTestId("pdf-page").getByRole("group", { name: "Education" })).toContainText("King's College")
 })

@@ -17,7 +17,62 @@ const fields: Field[] = [
     builtin: false,
   },
   { id: "office", label: "Office", type: "text", required: false, builtin: false },
+  {
+    id: "education",
+    label: "Education",
+    type: "records",
+    required: false,
+    builtin: false,
+    columns: [
+      { id: "school", label: "School", type: "text" },
+      { id: "degree", label: "Degree", type: "text" },
+      { id: "location", label: "Location", type: "text" },
+      { id: "from", label: "From", type: "date" },
+      { id: "to", label: "To", type: "date" },
+    ],
+  },
+  {
+    id: "employment",
+    label: "Employment history",
+    type: "records",
+    required: false,
+    builtin: false,
+    columns: [
+      { id: "employer", label: "Employer", type: "text" },
+      { id: "role", label: "Role", type: "text" },
+      { id: "location", label: "Location", type: "text" },
+      { id: "from", label: "From", type: "date" },
+      { id: "to", label: "To", type: "date" },
+    ],
+  },
+  {
+    id: "family",
+    label: "Family members",
+    type: "records",
+    required: false,
+    builtin: false,
+    columns: [
+      { id: "name", label: "Name", type: "text" },
+      { id: "relationship", label: "Relationship", type: "text" },
+      { id: "birthDate", label: "Birth date", type: "date" },
+    ],
+  },
 ]
+
+const histories: Record<string, Employee["values"]> = {
+  "emp-ada": {
+    education: [{ school: "Home tutoring", degree: "Mathematics", location: "London", from: "1830-01-01", to: "1835-12-31" }],
+    employment: [{ employer: "Analytical Engine project", role: "Analyst", location: "London", from: "1842-01-01", to: "1843-12-31" }],
+    family: [{ name: "Byron King", relationship: "Child", birthDate: "1836-05-12" }],
+  },
+  "emp-grace": {
+    education: [
+      { school: "Vassar College", degree: "BA Mathematics", location: "Poughkeepsie", from: "1924-09-01", to: "1928-06-01" },
+      { school: "Yale University", degree: "PhD Mathematics", location: "New Haven", from: "1930-09-01", to: "1934-06-01" },
+    ],
+    employment: [{ employer: "US Navy", role: "Officer", location: "Washington", from: "1943-12-01", to: "1986-08-14" }],
+  },
+}
 
 const fieldIds = fields.map((field) => field.id)
 
@@ -90,6 +145,10 @@ function person(
       hireDate: "2020-01-15",
       status,
       office,
+      education: [],
+      employment: [],
+      family: [],
+      ...histories[id],
     },
   }
 }

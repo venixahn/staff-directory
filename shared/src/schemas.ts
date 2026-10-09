@@ -7,7 +7,20 @@ export const fieldTypeSchema = z.enum([
   "phone",
   "date",
   "select",
+  "records",
 ])
+
+export const recordColumnTypeSchema = z.enum(["text", "date"])
+
+export const recordColumnSchema = z.object({
+  id: z.string().trim().min(1),
+  label: z.string().trim().min(1),
+  type: recordColumnTypeSchema,
+})
+
+export const recordColumnDraftSchema = recordColumnSchema.extend({
+  id: z.string().trim().min(1).optional(),
+})
 
 export const fieldSchema = z
   .object({
@@ -16,9 +29,10 @@ export const fieldSchema = z
     type: fieldTypeSchema,
     required: z.boolean(),
     options: z.array(z.string().trim().min(1)).optional(),
+    columns: z.array(recordColumnSchema).optional(),
     builtin: z.boolean(),
   })
-  .superRefine(requireSelectOptions)
+  .superRefine(checkTypeDetails)
 
 export const fieldDraftSchema = z
   .object({
@@ -26,16 +40,21 @@ export const fieldDraftSchema = z
     type: fieldTypeSchema,
     required: z.boolean(),
     options: z.array(z.string().trim().min(1)).optional(),
+    columns: z.array(recordColumnDraftSchema).optional(),
   })
-  .superRefine(requireSelectOptions)
+  .superRefine(checkTypeDetails)
+
+export const recordEntrySchema = z.record(z.string(), z.string())
+export const fieldValueSchema = z.union([z.string(), z.array(recordEntrySchema)])
+export const employeeValuesSchema = z.record(z.string(), fieldValueSchema)
 
 export const employeeSchema = z.object({
   id: z.string().trim().min(1),
-  values: z.record(z.string(), z.string()),
+  values: employeeValuesSchema,
 })
 
 export const employeeBodySchema = z.object({
-  values: z.record(z.string(), z.string()),
+  values: employeeValuesSchema,
 })
 
 export const orientationSchema = z.enum(["portrait", "landscape"])
@@ -90,6 +109,12 @@ export const databaseSchema = z.object({
 export const builtinFieldIds = ["firstName", "lastName", "email"] as const
 
 export type FieldType = z.infer<typeof fieldTypeSchema>
+export type RecordColumnType = z.infer<typeof recordColumnTypeSchema>
+export type RecordColumn = z.infer<typeof recordColumnSchema>
+export type RecordColumnDraft = z.infer<typeof recordColumnDraftSchema>
+export type RecordEntry = z.infer<typeof recordEntrySchema>
+export type FieldValue = z.infer<typeof fieldValueSchema>
+export type EmployeeValues = z.infer<typeof employeeValuesSchema>
 export type Field = z.infer<typeof fieldSchema>
 export type FieldDraft = z.infer<typeof fieldDraftSchema>
 export type Employee = z.infer<typeof employeeSchema>
@@ -102,15 +127,14 @@ export type ProfileLayout = z.infer<typeof profileLayoutSchema>
 export type ReportLayout = z.infer<typeof reportLayoutSchema>
 export type StaffDatabase = z.infer<typeof databaseSchema>
 
-function requireSelectOptions(
-  field: { type: FieldType; options?: string[] },
+function checkTypeDetails(
+  field: { type: FieldType; options?: string[]; columns?: unknown[] },
   ctx: z.RefinementCtx,
 ) {
-  if (field.type !== "select") return
-  if (field.options && field.options.length > 0) return
-  ctx.addIssue({
-    code: "custom",
-    message: "Select fields need options",
-    path: ["options"],
-  })
+  if (field.type === "select" && !field.options?.length) {
+    ctx.addIssue({ code: "custom", message: "Select fields need options", path: ["options"] })
+  }
+  if (field.type === "records" && !field.columns?.length) {
+    ctx.addIssue({ code: "custom", message: "Records fields need at least one column", path: ["columns"] })
+  }
 }

@@ -1,4 +1,4 @@
-import type { Employee, Field, FieldDraft, ProfileLayout, ReportLayout } from "@staff/shared"
+import type { Employee, EmployeeValues, Field, FieldDraft, ProfileLayout, ReportLayout } from "@staff/shared"
 
 export function listEmployees(query: string) {
   const params = new URLSearchParams()
@@ -11,11 +11,11 @@ export function getEmployee(id: string) {
   return readJson<Employee>(fetch(`/api/employees/${id}`))
 }
 
-export function createEmployee(values: Record<string, string>) {
+export function createEmployee(values: EmployeeValues) {
   return sendJson<Employee>("/api/employees", "POST", { values })
 }
 
-export function updateEmployee(id: string, values: Record<string, string>) {
+export function updateEmployee(id: string, values: EmployeeValues) {
   return sendJson<Employee>(`/api/employees/${id}`, "PATCH", { values })
 }
 

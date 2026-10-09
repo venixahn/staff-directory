@@ -42,6 +42,20 @@ Given the fields page is open
 When I add a text field called Nickname  
 Then the employee form shows Nickname
 
+## Add a records field
+
+Given the fields page is open  
+When I add a "records" field called Certificates with Name and Issued on (date) columns  
+Then the field list shows "records: Name, Issued on", and the employee form offers "Add Certificates entry"
+
+## Record education history
+
+Given an employee's edit form is open  
+When I add an Education entry with school, degree, and start date, and save  
+Then the profile shows an Education table with that entry, and Family members says "None recorded"  
+When I click Download PDF  
+Then the profile PDF designer shows an Education section with the same school
+
 ## Reorder fields
 
 Given the fields page is open  
