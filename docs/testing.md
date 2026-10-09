@@ -6,7 +6,7 @@ Write a failing test locally, make it pass, then commit the test, the code, and 
 
 - **Unit** (`npm run test:unit`) — Vitest. Shared Zod and helpers, server Effect and PDF planning, client RxJS-to-signal bridge.
 - **API** (`npm run test:api`) — Vitest and Supertest against a temporary `db.json`.
-- **End-to-end** (`npm run test:e2e`) — Playwright, one scenario per user story, plus the shell smoke test.
+- **End-to-end** (`npm run test:e2e`) — Playwright, one scenario per user story, plus the shell smoke test. The suite starts the API against `server/data/e2e.json`, which is deleted before the run so the seed data is fresh.
 
 `npm test` runs all three. Before merging a feature branch into `develop`, run `npm test`.
 
