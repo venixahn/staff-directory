@@ -116,7 +116,7 @@ export function ExportPage() {
       <input
         class="input input-bordered"
         aria-label="Report search"
-        placeholder="Who goes in the report? Search name, email, department, or job title"
+        placeholder="Who goes in the report? Search any detail: name, department, school, employer…"
         value={directoryQuery()}
         onInput={(event) => onSearch(event.currentTarget.value)}
       />

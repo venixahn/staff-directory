@@ -47,7 +47,7 @@ export function DirectoryPage() {
       <input
         class="input input-bordered mb-4 w-full"
         aria-label="Search employees"
-        placeholder="Search name, email, department, or job title"
+        placeholder="Search any detail: name, department, school, employer…"
         value={directoryQuery()}
         onInput={(event) => onSearch(event.currentTarget.value)}
       />
