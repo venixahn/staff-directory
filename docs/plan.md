@@ -41,7 +41,8 @@ Branches:
 
 ## Screens
 
-- Directory — search, add, edit, delete, download one profile PDF
+- Directory — search and add; clicking a row opens the profile
+- Profile — every field for one employee, with Edit, Download PDF, and Delete (typed-name confirmation)
 - Employee form — generated from field definitions
-- Fields — add, edit, reorder, and delete custom fields
+- Fields — add, edit, drag to reorder, and delete custom fields (typed-label confirmation)
 - Export — edit saved layouts and download an aggregate PDF of the current search

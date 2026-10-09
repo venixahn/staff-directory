@@ -2,10 +2,6 @@ import { expect, test } from "./fixtures"
 
 test.describe.configure({ mode: "serial" })
 
-test.beforeEach(async ({ page }) => {
-  page.on("dialog", (dialog) => dialog.accept())
-})
-
 test("adds, edits, and deletes an employee", async ({ page }) => {
   await page.goto("/")
   await page.getByRole("link", { name: "Add employee" }).click()
@@ -13,15 +9,28 @@ test("adds, edits, and deletes an employee", async ({ page }) => {
   await page.getByRole("textbox", { name: /Last name/ }).fill("Person")
   await page.getByRole("textbox", { name: /Email/ }).fill("test.person@example.com")
   await page.getByRole("button", { name: "Save" }).click()
-  const row = page.getByRole("row", { name: /Test Person/ })
-  await expect(row).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Test Person" })).toBeVisible()
 
-  await row.getByRole("link", { name: "Edit" }).click()
+  await page.getByRole("link", { name: "Edit" }).click()
   await page.getByRole("textbox", { name: "Job title" }).fill("Analyst")
   await page.getByRole("button", { name: "Save" }).click()
-  await expect(page.getByRole("row", { name: /Test Person/ })).toContainText("Analyst")
+  await expect(page.getByText("Analyst").first()).toBeVisible()
 
-  await page.getByRole("row", { name: /Test Person/ }).getByRole("button", { name: "Delete" }).click()
+  await page.getByRole("link", { name: "← Directory" }).click()
+  await expect(page.getByRole("row", { name: /Test Person/ })).toContainText("Analyst")
+  await page.getByRole("row", { name: /Test Person/ }).getByRole("cell", { name: "Analyst" }).click()
+  await expect(page.getByRole("heading", { name: "Test Person" })).toBeVisible()
+
+  await page.getByRole("button", { name: "Delete" }).click()
+  await page.getByRole("button", { name: "Cancel" }).click()
+  await expect(page.getByRole("heading", { name: "Test Person" })).toBeVisible()
+
+  await page.getByRole("button", { name: "Delete" }).click()
+  const confirmDelete = page.getByRole("button", { name: "Delete employee" })
+  await expect(confirmDelete).toBeDisabled()
+  await page.getByLabel("Confirmation text").fill("Test Person")
+  await confirmDelete.click()
+  await expect(page.getByRole("heading", { name: "Directory" })).toBeVisible()
   await expect(page.getByRole("cell", { name: "Test Person" })).toHaveCount(0)
 })
 
@@ -38,19 +47,23 @@ test("adds a custom field and removes it with stored values", async ({ page }) =
   await page.getByRole("button", { name: "Add field" }).click()
   await expect(page.getByText("Nickname (text)")).toBeVisible()
 
-  await page.goto("/employees/emp-ada")
+  await page.goto("/employees/emp-ada/edit")
   await page.getByRole("textbox", { name: "Nickname" }).fill("A.L.")
   await page.getByRole("button", { name: "Save" }).click()
+  await expect(page.getByText("A.L.")).toBeVisible()
 
   await page.goto("/fields")
   await page.getByRole("listitem").filter({ hasText: "Nickname" }).getByRole("button", { name: "Delete" }).click()
+  await page.getByLabel("Confirmation text").fill("Nickname")
+  await page.getByRole("button", { name: "Delete field" }).click()
   await expect(page.getByText("Nickname (text)")).toHaveCount(0)
 
-  await page.goto("/employees/emp-ada")
+  await page.goto("/employees/emp-ada/edit")
   await expect(page.getByRole("textbox", { name: "Nickname" })).toHaveCount(0)
 })
 
 test("reorders fields by dragging", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 1600 })
   await page.goto("/fields")
   const office = page.getByRole("listitem").filter({ hasText: "Office" })
   const phone = page.getByRole("listitem").filter({ hasText: "Phone" })
@@ -63,8 +76,9 @@ test("reorders fields by dragging", async ({ page }) => {
 
 test("downloads a profile PDF", async ({ page }) => {
   await page.goto("/")
+  await page.getByRole("link", { name: "Ada Lovelace" }).click()
   const download = page.waitForEvent("download")
-  await page.getByRole("row", { name: /Ada Lovelace/ }).getByRole("button", { name: "PDF" }).click()
+  await page.getByRole("button", { name: "Download PDF" }).click()
   expect((await download).suggestedFilename()).toContain(".pdf")
 })
 

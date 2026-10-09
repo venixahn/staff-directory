@@ -16,3 +16,4 @@
 - Fields page reorders by drag and drop.
 - End-to-end runs start from fresh seed data. The test API clears its file before loading it, so one run no longer inherits the previous run's changes.
 - The row under a dragged field is outlined, so you can see where it will land.
+- Directory rows open an employee profile with Edit, Download PDF, and Delete. Deleting an employee or a field asks you to type its name in an in-page dialog, because embedded browsers can skip native confirm prompts.
