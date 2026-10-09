@@ -15,6 +15,7 @@ export function FieldsPage() {
   const [editingId, setEditingId] = createSignal<string | null>(null)
   const [error, setError] = createSignal("")
   const [pendingDelete, setPendingDelete] = createSignal<Field | null>(null)
+  let labelInput: HTMLInputElement | undefined
 
   onMount(() => {
     void refresh()
@@ -28,6 +29,8 @@ export function FieldsPage() {
     setEditingId(field.id)
     setDraft({ label: field.label, type: field.type, required: field.required, options: field.options, columns: field.columns })
     setOptionsText(field.options?.join(", ") ?? "")
+    labelInput?.scrollIntoView({ block: "center" })
+    labelInput?.focus({ preventScroll: true })
   }
 
   function resetForm() {
@@ -78,6 +81,7 @@ export function FieldsPage() {
         <div class="card-body grid gap-3 md:grid-cols-2">
           <h2 class="md:col-span-2 text-lg font-medium">{editingId() ? "Edit field" : "Add field"}</h2>
           <input
+            ref={labelInput}
             class="input input-bordered"
             aria-label="Field label"
             placeholder="Label"
