@@ -44,9 +44,12 @@ test("searches the directory by department", async ({ page }) => {
 
 test("adds a custom field and removes it with stored values", async ({ page }) => {
   await page.goto("/fields")
+  await page.getByRole("button", { name: "Add field" }).click()
+  await expect(page.getByText("Field label is required")).toBeVisible()
   await page.getByLabel("Field label").fill("Nickname")
   await page.getByRole("button", { name: "Add field" }).click()
   await expect(page.getByText("Nickname (text)")).toBeVisible()
+  await expect(page.getByText("Field label is required")).toHaveCount(0)
 
   await page.goto("/employees/emp-ada/edit")
   await page.getByRole("textbox", { name: "Nickname" }).fill("A.L.")

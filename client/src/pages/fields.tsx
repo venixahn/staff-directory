@@ -41,6 +41,7 @@ export function FieldsPage() {
 
   async function onSubmit(event: SubmitEvent) {
     event.preventDefault()
+    setError("")
     try {
       await saveDraft(editingId(), draftFrom(draft(), optionsText()))
       resetForm()
@@ -52,6 +53,7 @@ export function FieldsPage() {
 
   async function onDelete(field: Field) {
     setPendingDelete(null)
+    setError("")
     try {
       await removeField(field.id)
       await refresh()
@@ -64,6 +66,7 @@ export function FieldsPage() {
     const current = fields().map((field) => field.id)
     const ids = relocateId(current, sourceId, targetId)
     if (ids === current) return
+    setError("")
     try {
       setFields(await reorderFields(ids))
     } catch (cause) {

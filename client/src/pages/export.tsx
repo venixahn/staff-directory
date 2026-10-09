@@ -68,6 +68,7 @@ export function ExportPage() {
   async function onDownload() {
     const current = draft()
     if (!current) return
+    setError("")
     try {
       const query = encodeURIComponent(directoryQuery())
       await downloadPdf(`/api/pdf/report?q=${query}`, "employee-directory.pdf", { layout: current })
@@ -79,6 +80,7 @@ export function ExportPage() {
   async function onSave() {
     const current = draft()
     if (!current) return
+    setError("")
     try {
       const next = await saveReportLayout(current)
       setSaved(next)
