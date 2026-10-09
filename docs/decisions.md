@@ -38,4 +38,4 @@ Unit, integration, and end-to-end coverage stay in three reports. One blended nu
 
 ## Git flow and green commits
 
-`main` is the finished line. `develop` integrates feature branches. Each commit is one behavior and includes its docs update. The pre-commit hook runs unit tests, so the committed tree is green.
+`main` is the finished line. `develop` integrates feature branches. Each commit is one behavior and includes its docs update. The pre-commit hook runs the TypeScript check and unit tests, so the committed tree compiles and is green. tsx and Vite strip types without checking them, so only `npm run typecheck` catches type errors.
