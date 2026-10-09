@@ -30,8 +30,27 @@ describe("pdf API", () => {
     await request(app.getHttpServer()).post("/api/pdf/profile/missing").expect(404)
   })
 
-  function pdfRequest(url: string) {
-    return request(app.getHttpServer()).post(url).buffer(true).parse(binaryParser).expect(200)
+  it("renders an unsaved layout and leaves the saved one alone", async () => {
+    const saved = await request(app.getHttpServer()).get("/api/layouts/profile").expect(200)
+    const layout = { ...saved.body, title: "Draft", columns: 2, labelStyle: "stacked", pageSize: "LETTER" }
+    const profile = await pdfRequest("/api/pdf/profile/emp-ada", { layout })
+    expect(profile.body.subarray(0, 4).toString()).toBe("%PDF")
+    const after = await request(app.getHttpServer()).get("/api/layouts/profile").expect(200)
+    expect(after.body.title).toBe(saved.body.title)
+
+    const report = await request(app.getHttpServer()).get("/api/layouts/report").expect(200)
+    const compact = await pdfRequest("/api/pdf/report?q=Research", { layout: { ...report.body, density: "compact" } })
+    expect(compact.body.subarray(0, 4).toString()).toBe("%PDF")
+
+    await request(app.getHttpServer())
+      .post("/api/pdf/profile/emp-ada")
+      .send({ layout: { ...layout, fieldIds: ["missing"] } })
+      .expect(400)
+  })
+
+  function pdfRequest(url: string, body?: object) {
+    const call = request(app.getHttpServer()).post(url)
+    return (body ? call.send(body) : call).buffer(true).parse(binaryParser).expect(200)
   }
 })
 

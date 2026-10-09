@@ -18,3 +18,4 @@
 - The row under a dragged field is outlined, so you can see where it will land.
 - Directory rows open an employee profile with Edit, Download PDF, and Delete. Deleting an employee or a field asks you to type its name in an in-page dialog, because embedded browsers can skip native confirm prompts.
 - Form labels sit above their inputs again. daisyUI 5 dropped the `form-control` class.
+- PDF layouts gain page size, margins, title and text size, profile columns and label placement, and report row spacing. PDF endpoints render an unsaved layout sent in the request body.

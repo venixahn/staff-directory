@@ -28,10 +28,10 @@ Deleting a custom field removes it from employee values and from both layouts. I
 - `PUT /api/fields/order` body `{ "ids": ["..."] }` reorders fields
 - `GET /api/layouts/profile` and `PUT /api/layouts/profile`
 - `GET /api/layouts/report` and `PUT /api/layouts/report`
-- `POST /api/pdf/profile/:id` returns `application/pdf`
-- `POST /api/pdf/report?q=` returns `application/pdf` for the current search
+- `POST /api/pdf/profile/:id` returns `application/pdf`. An optional body `{ "layout": {...} }` renders an unsaved profile layout.
+- `POST /api/pdf/report?q=` returns `application/pdf` for the current search. An optional body `{ "layout": {...} }` renders an unsaved report layout.
 
-Profile layout: title, field order, whether to show empty fields, portrait or landscape. Report layout: title, columns and order, sort field and direction, optional group-by, portrait or landscape.
+Both layouts share page size (A4 or Letter), orientation, margins (narrow 24 pt, normal 40 pt, wide 64 pt), title size, and text size. Profile layout adds field order, one or two columns, labels beside or above values, and whether to show empty fields. Report layout adds columns and their order, sort field and direction, optional group-by, and row spacing (compact or comfortable). Layouts saved before these keys existed get the defaults when read.
 
 ## Errors
 
@@ -45,4 +45,6 @@ Profile layout: title, field order, whether to show empty fields, portrait or la
 
 ## PDF
 
-A pure planner builds a pdfmake document definition from the employee rows, field definitions, and saved layout. The Nest adapter renders that definition to bytes. There is no drag-and-drop designer.
+`planProfile` and `planReport` in `@staff/shared` are pure functions. They turn employees, field definitions, and a layout into a `PdfPlan`: page box, title, and blocks (fields, two-column groups, or a table). The server converts the plan to a pdfmake document and renders it to bytes.
+
+The renderer reads spacing from `pdfSpacing`: line height, title gap, column gap, field gaps, and cell padding. Line height is 0.925 of the font size, because pdfmake lays Helvetica lines out at ascender minus descender.

@@ -19,8 +19,12 @@ export function putReportLayout(database: DatabaseService, layout: ReportLayout)
   return database.transaction((data) => saveReport(data, layout))
 }
 
+export function profileLayoutMessage(fields: Field[], layout: ProfileLayout): string | null {
+  return idListMessage(fields, layout.fieldIds)
+}
+
 function saveProfile(data: StaffDatabase, layout: ProfileLayout) {
-  const message = idListMessage(data.fields, layout.fieldIds)
+  const message = profileLayoutMessage(data.fields, layout)
   if (message) return Effect.fail(invalidField(message))
   return Effect.succeed({
     data: { ...data, layouts: { ...data.layouts, profile: layout } },
@@ -37,7 +41,7 @@ function saveReport(data: StaffDatabase, layout: ReportLayout) {
   })
 }
 
-function reportMessage(fields: Field[], layout: ReportLayout): string | null {
+export function reportMessage(fields: Field[], layout: ReportLayout): string | null {
   const messages = [
     idListMessage(fields, layout.columnIds),
     unknownId(fields, [layout.sortFieldId]),
