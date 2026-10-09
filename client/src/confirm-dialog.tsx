@@ -18,7 +18,7 @@ export function ConfirmDialog(props: {
           {props.title}
         </h2>
         <div>{props.children}</div>
-        <label class="form-control gap-1">
+        <label class="flex flex-col gap-1">
           <span class="label-text">
             Type <strong>{props.confirmText}</strong> to confirm
           </span>

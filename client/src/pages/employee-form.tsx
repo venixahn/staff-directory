@@ -54,7 +54,7 @@ export function EmployeeFormPage() {
         <div class="card-body grid gap-4">
           <For each={fields()}>
             {(field) => (
-              <label class="form-control gap-1">
+              <label class="flex flex-col gap-1">
                 <span class="label-text">
                   {field.label}
                   {field.required ? " *" : ""}
