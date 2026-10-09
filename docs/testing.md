@@ -22,7 +22,7 @@ Istanbul reports are separate from `npm test`, so the commit hook stays on the u
 
 ## Hooks
 
-- **pre-commit** — `npm run lint` and `npm run test:unit`
+- **pre-commit** — `npm run lint`, `npm run typecheck`, and `npm run test:unit`
 - **pre-push** — `npm test`
 
 ## API fixtures

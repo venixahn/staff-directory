@@ -21,7 +21,7 @@
 ## Quality
 
 - ESLint `complexity` is an error above 8.
-- Husky pre-commit runs ESLint and unit tests.
+- Husky pre-commit runs ESLint, the TypeScript check, and unit tests.
 - Husky pre-push runs `npm test` (unit, API, and end-to-end).
 - A commit stays green: a failing test is written locally, then the passing test, the code, and the docs update land together.
 
