@@ -58,22 +58,36 @@ Then the form no longer shows it and the stored value is gone
 
 Given an employee's profile is open  
 When I click Download PDF  
+Then the profile PDF designer opens with a preview of their page  
+When I click Download PDF there  
 Then the browser receives a PDF file
+
+## Design the profile PDF on the page
+
+Given the profile PDF designer is open  
+When I drag Office onto First name  
+Then Office moves to the top of the page  
+When I hover Email and press ×  
+Then Email leaves the page and a "+ Email" chip appears  
+When I click "+ Email"  
+Then Email is back on the page  
+When I choose two columns and then Reset  
+Then the page shows the saved layout again
 
 ## Save the profile layout
 
-Given the export page is open  
-When I change the profile title and save  
-Then the title is still there after a reload
+Given the profile PDF designer is open  
+When I rename the title, put labels above values, and save as the default layout  
+Then another employee's designer opens with that title and label style
 
 ## Download an aggregate PDF
 
-Given the directory search is "Research"  
+Given the report search is "Research"  
 When I download the report  
 Then the browser receives a PDF of that search
 
 ## Save the report layout
 
-Given the export page is open  
-When I change columns, sort, and group-by and save  
+Given the Report PDF page is open  
+When I rename the title, change sort and group-by, add the Phone column, and save as the default layout  
 Then those choices are still there after a reload

@@ -5,6 +5,7 @@ import { EmployeeFormPage } from "./pages/employee-form"
 import { ExportPage } from "./pages/export"
 import { FieldsPage } from "./pages/fields"
 import { ProfilePage } from "./pages/profile"
+import { ProfilePdfPage } from "./pages/profile-pdf"
 
 export function App() {
   return (
@@ -13,6 +14,7 @@ export function App() {
       <Route path="/employees/new" component={EmployeeFormPage} />
       <Route path="/employees/:id" component={ProfilePage} />
       <Route path="/employees/:id/edit" component={EmployeeFormPage} />
+      <Route path="/employees/:id/pdf" component={ProfilePdfPage} />
       <Route path="/fields" component={FieldsPage} />
       <Route path="/export" component={ExportPage} />
     </Router>
@@ -34,7 +36,7 @@ function Shell(props: ParentProps) {
             Fields
           </A>
           <A href="/export" class="btn btn-ghost">
-            Export
+            Report PDF
           </A>
         </div>
       </nav>

@@ -59,8 +59,12 @@ export function saveReportLayout(layout: ReportLayout) {
   return sendJson<ReportLayout>("/api/layouts/report", "PUT", layout)
 }
 
-export async function downloadPdf(path: string, filename: string) {
-  const response = await fetch(path, { method: "POST" })
+export async function downloadPdf(path: string, filename: string, body?: unknown) {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  })
   if (!response.ok) throw new Error(await failureMessage(response))
   const blob = await response.blob()
   const url = URL.createObjectURL(blob)

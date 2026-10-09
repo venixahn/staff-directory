@@ -17,3 +17,6 @@
 - End-to-end runs start from fresh seed data. The test API clears its file before loading it, so one run no longer inherits the previous run's changes.
 - The row under a dragged field is outlined, so you can see where it will land.
 - Directory rows open an employee profile with Edit, Download PDF, and Delete. Deleting an employee or a field asks you to type its name in an in-page dialog, because embedded browsers can skip native confirm prompts.
+- Form labels sit above their inputs again. daisyUI 5 dropped the `form-control` class.
+- PDF layouts gain page size, margins, title and text size, profile columns and label placement, and report row spacing. PDF endpoints render an unsaved layout sent in the request body.
+- WYSIWYG PDF designers for one profile and for the report: edit the title in place, drag and hide fields on a page-sized preview that uses the PDF's own spacing, then download or save as the default layout.

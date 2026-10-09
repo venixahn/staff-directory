@@ -1,7 +1,7 @@
 import type { Employee, Field } from "@staff/shared"
 import { A, useNavigate, useParams } from "@solidjs/router"
 import { createSignal, For, onMount, Show } from "solid-js"
-import { downloadPdf, getEmployee, listFields, removeEmployee } from "../api"
+import { getEmployee, listFields, removeEmployee } from "../api"
 import { ConfirmDialog } from "../confirm-dialog"
 import { displayName, messageOf } from "../employee-name"
 
@@ -22,14 +22,6 @@ export function ProfilePage() {
       const [nextEmployee, nextFields] = await Promise.all([getEmployee(params.id), listFields()])
       setEmployee(nextEmployee)
       setFields(nextFields)
-    } catch (cause) {
-      setError(messageOf(cause))
-    }
-  }
-
-  async function onDownload(current: Employee) {
-    try {
-      await downloadPdf(`/api/pdf/profile/${current.id}`, `${displayName(current)}.pdf`)
     } catch (cause) {
       setError(messageOf(cause))
     }
@@ -65,9 +57,9 @@ export function ProfilePage() {
                 <A class="btn" href={`/employees/${current.id}/edit`}>
                   Edit
                 </A>
-                <button class="btn" type="button" onClick={() => void onDownload(current)}>
+                <A class="btn" href={`/employees/${current.id}/pdf`}>
                   Download PDF
-                </button>
+                </A>
                 <button class="btn btn-error btn-outline" type="button" onClick={() => setConfirming(true)}>
                   Delete
                 </button>
