@@ -27,7 +27,16 @@
 
 ## Git flow
 
-`main` and `develop` exist from the start. Work lands on `feature/*` branches cut from `develop`, then merges back. `develop` merges into `main` after the browser check.
+`main` and `develop` exist from the start. Work lands on `feature/*` branches cut from `develop`, then merges back with `--no-ff`.
+
+`develop` never merges straight into `main`. A release goes through a release branch:
+
+1. After the browser check, cut `release/x.y.z` from `develop`.
+2. On that branch, set `x.y.z` in every `package.json` and the lock file (`npm version x.y.z --workspaces --include-workspace-root --no-git-tag-version`, then `npm install --package-lock-only`), and move the changelog's Unreleased entries under a dated `x.y.z` heading. Only release fixes land here.
+3. Merge the release branch into `main` with `--no-ff` and tag that merge `vx.y.z` (annotated).
+4. Merge the release branch back into `develop` with `--no-ff`, then delete it.
+
+Urgent fixes to a release go on `hotfix/x.y.z` cut from `main`, finished the same way: merge into `main`, tag, merge into `develop`, delete.
 
 Branches:
 
