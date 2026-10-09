@@ -32,6 +32,12 @@ Given the fields page is open
 When I add a text field called Nickname  
 Then the employee form shows Nickname
 
+## Reorder fields
+
+Given the fields page is open  
+When I drag Office onto Phone  
+Then Office takes Phone's place, and the order is still there after a reload
+
 ## Delete a custom field
 
 Given an employee has a Nickname  

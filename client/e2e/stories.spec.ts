@@ -50,6 +50,17 @@ test("adds a custom field and removes it with stored values", async ({ page }) =
   await expect(page.getByRole("textbox", { name: "Nickname" })).toHaveCount(0)
 })
 
+test("reorders fields by dragging", async ({ page }) => {
+  await page.goto("/fields")
+  const office = page.getByRole("listitem").filter({ hasText: "Office" })
+  const phone = page.getByRole("listitem").filter({ hasText: "Phone" })
+  await office.dragTo(phone)
+  await expect(page.getByRole("listitem").nth(3)).toContainText("Office")
+  await page.reload()
+  await expect(page.getByRole("listitem").nth(3)).toContainText("Office")
+  await expect(page.getByRole("button", { name: "Up" })).toHaveCount(0)
+})
+
 test("downloads a profile PDF", async ({ page }) => {
   await page.goto("/")
   const download = page.waitForEvent("download")

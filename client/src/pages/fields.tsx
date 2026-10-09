@@ -1,7 +1,8 @@
 import type { Field, FieldDraft, FieldType } from "@staff/shared"
 import { createSignal, For, onMount, Show } from "solid-js"
 import { createField, listFields, removeField, reorderFields, updateField } from "../api"
-import { moveId } from "../order"
+import { dragItem } from "../drag"
+import { relocateId } from "../order"
 
 const emptyDraft: FieldDraft = { label: "", type: "text", required: false }
 
@@ -53,9 +54,15 @@ export function FieldsPage() {
     }
   }
 
-  async function onMove(id: string, direction: -1 | 1) {
-    await reorderFields(moveId(fields().map((field) => field.id), id, direction))
-    await refresh()
+  async function onReorder(sourceId: string, targetId: string) {
+    const current = fields().map((field) => field.id)
+    const ids = relocateId(current, sourceId, targetId)
+    if (ids === current) return
+    try {
+      setFields(await reorderFields(ids))
+    } catch (cause) {
+      setError(messageOf(cause))
+    }
   }
 
   return (
@@ -114,15 +121,12 @@ export function FieldsPage() {
       </form>
       <ul class="grid gap-2">
         <For each={fields()}>
-          {(field, index) => (
+          {(field) => (
             <FieldRow
               field={field}
-              first={index() === 0}
-              last={index() === fields().length - 1}
               onEdit={() => beginEdit(field)}
               onDelete={() => void onDelete(field)}
-              onUp={() => void onMove(field.id, -1)}
-              onDown={() => void onMove(field.id, 1)}
+              onReorder={onReorder}
             />
           )}
         </For>
@@ -133,24 +137,21 @@ export function FieldsPage() {
 
 function FieldRow(props: {
   field: Field
-  first: boolean
-  last: boolean
   onEdit: () => void
   onDelete: () => void
-  onUp: () => void
-  onDown: () => void
+  onReorder: (sourceId: string, targetId: string) => void
 }) {
   return (
-    <li class="flex flex-wrap items-center gap-2 rounded-box bg-base-100 px-4 py-3 shadow-sm">
+    <li
+      class="flex cursor-grab flex-wrap items-center gap-2 rounded-box bg-base-100 px-4 py-3 shadow-sm active:cursor-grabbing"
+      {...dragItem(props.field.id, props.onReorder)}
+    >
+      <span class="select-none opacity-50" aria-hidden="true">
+        ⠿
+      </span>
       <span class="flex-1">
         {props.field.label} <span class="opacity-60">({props.field.type})</span>
       </span>
-      <button class="btn btn-sm" type="button" disabled={props.first} onClick={props.onUp}>
-        Up
-      </button>
-      <button class="btn btn-sm" type="button" disabled={props.last} onClick={props.onDown}>
-        Down
-      </button>
       <button class="btn btn-sm" type="button" onClick={props.onEdit}>
         Edit
       </button>
