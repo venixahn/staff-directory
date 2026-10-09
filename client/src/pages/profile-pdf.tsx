@@ -53,6 +53,7 @@ export function ProfilePdfPage() {
     const current = draft()
     const person = employee()
     if (!current || !person) return
+    setError("")
     try {
       await downloadPdf(`/api/pdf/profile/${person.id}`, `${displayName(person)}.pdf`, { layout: current })
     } catch (cause) {
@@ -63,6 +64,7 @@ export function ProfilePdfPage() {
   async function onSave() {
     const current = draft()
     if (!current) return
+    setError("")
     try {
       const next = await saveProfileLayout(current)
       setSaved(next)

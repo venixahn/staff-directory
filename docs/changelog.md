@@ -23,3 +23,5 @@
 - `npm run typecheck` checks shared, server, client, and the Playwright files (which get their own Node-typed tsconfig). The pre-commit hook runs it, and the server type errors it found are fixed.
 - Records fields hold lists of entries with their own columns. Education, Employment history, and Family members ship as starter fields. Profiles show each one as a table, the form edits entries in place, search looks inside them, and the profile PDF renders them as full-width sections.
 - Clicking Edit on the fields page scrolls the form into view and focuses the label, so editing a field low in the list no longer happens off-screen.
+- Error alerts on the fields page and both PDF designers clear when the next action starts, instead of lingering after a success. Empty field labels, column labels, and PDF titles now say which value is missing instead of quoting the raw validation rule.
+- Search boxes say they match any detail, since search already covers every text field and records entry.

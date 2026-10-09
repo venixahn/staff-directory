@@ -68,6 +68,7 @@ export function ExportPage() {
   async function onDownload() {
     const current = draft()
     if (!current) return
+    setError("")
     try {
       const query = encodeURIComponent(directoryQuery())
       await downloadPdf(`/api/pdf/report?q=${query}`, "employee-directory.pdf", { layout: current })
@@ -79,6 +80,7 @@ export function ExportPage() {
   async function onSave() {
     const current = draft()
     if (!current) return
+    setError("")
     try {
       const next = await saveReportLayout(current)
       setSaved(next)
@@ -114,7 +116,7 @@ export function ExportPage() {
       <input
         class="input input-bordered"
         aria-label="Report search"
-        placeholder="Who goes in the report? Search name, email, department, or job title"
+        placeholder="Who goes in the report? Search any detail: name, department, school, employer…"
         value={directoryQuery()}
         onInput={(event) => onSearch(event.currentTarget.value)}
       />

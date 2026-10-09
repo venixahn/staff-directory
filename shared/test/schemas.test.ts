@@ -24,7 +24,8 @@ describe("schemas", () => {
     expect(fieldDraftSchema.safeParse({ ...draft, columns: [{ label: "Name", type: "text" }] }).success).toBe(true)
   })
 
-  it("rejects an empty field draft label", () => {
-    expect(fieldDraftSchema.safeParse({ label: "  ", type: "text", required: false }).success).toBe(false)
+  it("rejects an empty field draft label with a readable message", () => {
+    const result = fieldDraftSchema.safeParse({ label: "  ", type: "text", required: false })
+    expect(result.error?.issues[0]?.message).toBe("Field label is required")
   })
 })

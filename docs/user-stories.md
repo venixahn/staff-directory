@@ -39,8 +39,10 @@ Then only employees in that department remain visible
 ## Add a custom field
 
 Given the fields page is open  
+When I click Add field without a label  
+Then the page says "Field label is required"  
 When I add a text field called Nickname  
-Then the employee form shows Nickname
+Then the message goes away and the employee form shows Nickname
 
 ## Add a records field
 

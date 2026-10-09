@@ -14,7 +14,7 @@ export const recordColumnTypeSchema = z.enum(["text", "date"])
 
 export const recordColumnSchema = z.object({
   id: z.string().trim().min(1),
-  label: z.string().trim().min(1),
+  label: z.string().trim().min(1, "Column label is required"),
   type: recordColumnTypeSchema,
 })
 
@@ -36,7 +36,7 @@ export const fieldSchema = z
 
 export const fieldDraftSchema = z
   .object({
-    label: z.string().trim().min(1),
+    label: z.string().trim().min(1, "Field label is required"),
     type: fieldTypeSchema,
     required: z.boolean(),
     options: z.array(z.string().trim().min(1)).optional(),
@@ -64,7 +64,7 @@ export const labelStyleSchema = z.enum(["inline", "stacked"])
 export const densitySchema = z.enum(["compact", "comfortable"])
 
 export const profileLayoutSchema = z.object({
-  title: z.string().trim().min(1),
+  title: z.string().trim().min(1, "PDF title is required"),
   fieldIds: z.array(z.string()),
   showEmptyFields: z.boolean(),
   orientation: orientationSchema,
@@ -77,7 +77,7 @@ export const profileLayoutSchema = z.object({
 })
 
 export const reportLayoutSchema = z.object({
-  title: z.string().trim().min(1),
+  title: z.string().trim().min(1, "PDF title is required"),
   columnIds: z.array(z.string()),
   orientation: orientationSchema,
   sortFieldId: z.string().min(1),
